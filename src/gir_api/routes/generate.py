@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from gir_ai.text_to_gir.adapter import text_to_gir
 from gir_core.models.scene import GirScene
 from gir_core.models.validation import ValidationReport
+from gir_core.normalize import normalize_gir
 from gir_core.validation.semantic_validator import validate_scene
 from gir_render.svg_renderer import render_svg
 from gir_render.tikz_renderer import render_tikz
@@ -34,19 +35,48 @@ class GenerateResponse(BaseModel):
 @router.post("/generate")
 def generate(request: GenerateRequest) -> GenerateResponse:
     result = text_to_gir(request.input)
-    report = validate_scene(result.gir) if result.gir is not None else None
+    if result.gir is None:
+        return GenerateResponse(
+            status=result.status,
+            confidence=result.confidence,
+            gir=None,
+            validation_report=None,
+            warnings=result.warnings,
+        )
+
+    draft_report = validate_scene(result.gir)
+    if not draft_report.is_valid:
+        return GenerateResponse(
+            status="error",
+            confidence=result.confidence,
+            gir=result.gir,
+            validation_report=draft_report,
+            warnings=[*result.warnings, "Draft GIR failed semantic validation."],
+        )
+
+    normalized_gir = normalize_gir(result.gir)
+    normalized_report = validate_scene(normalized_gir)
+    if not normalized_report.is_valid:
+        return GenerateResponse(
+            status="error",
+            confidence=result.confidence,
+            gir=normalized_gir,
+            validation_report=normalized_report,
+            warnings=[*result.warnings, "Normalized GIR failed semantic validation."],
+        )
+
     svg: str | None = None
     tikz: str | None = None
-    if result.gir is not None and (report is None or report.is_valid):
-        if "svg" in request.output:
-            svg = render_svg(result.gir)
-        if "tikz" in request.output:
-            tikz = render_tikz(result.gir)
+    if "svg" in request.output:
+        svg = render_svg(normalized_gir)
+    if "tikz" in request.output:
+        tikz = render_tikz(normalized_gir)
+
     return GenerateResponse(
         status=result.status,
         confidence=result.confidence,
-        gir=result.gir,
-        validation_report=report,
+        gir=normalized_gir,
+        validation_report=normalized_report,
         svg=svg,
         tikz=tikz,
         warnings=result.warnings,

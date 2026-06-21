@@ -6,6 +6,7 @@ import typer
 
 from gir_ai.text_to_gir.adapter import text_to_gir
 from gir_core.models.scene import GirScene
+from gir_core.normalize import normalize_gir
 from gir_core.validation.semantic_validator import validate_scene
 from gir_render.svg_renderer import render_svg
 from gir_render.tikz_renderer import render_tikz
@@ -25,12 +26,12 @@ def validate(path: Path) -> None:
 
 @app.command("render-svg")
 def render_svg_command(path: Path) -> None:
-    typer.echo(render_svg(_load_scene(path)))
+    typer.echo(render_svg(_validated_normalized_scene(_load_scene(path))))
 
 
 @app.command("render-tikz")
 def render_tikz_command(path: Path) -> None:
-    typer.echo(render_tikz(_load_scene(path)))
+    typer.echo(render_tikz(_validated_normalized_scene(_load_scene(path))))
 
 
 @app.command("benchmark")
@@ -74,3 +75,18 @@ def _expected_file(input_file: Path) -> Path:
     if gir.exists():
         return gir
     return input_file.with_name(input_file.name.replace(".input.txt", ".expected.json"))
+
+
+def _validated_normalized_scene(scene: GirScene) -> GirScene:
+    draft_report = validate_scene(scene)
+    if not draft_report.is_valid:
+        typer.echo(draft_report.model_dump_json(indent=2), err=True)
+        raise typer.Exit(code=1)
+
+    normalized_scene = normalize_gir(scene)
+    normalized_report = validate_scene(normalized_scene)
+    if not normalized_report.is_valid:
+        typer.echo(normalized_report.model_dump_json(indent=2), err=True)
+        raise typer.Exit(code=1)
+
+    return normalized_scene
