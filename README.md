@@ -17,6 +17,16 @@ uv run python scripts/run_benchmarks.py
 uv run uvicorn gir_api.main:app --reload
 ```
 
+
+## Makefile shortcuts
+```bash
+make help
+make sync
+make check
+make api
+make validate BENCHMARK_GIR=benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
+```
+
 ## CLI
 ```bash
 gir validate benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
