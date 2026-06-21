@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GirScene",
+  "type": "object",
+  "required": ["version", "scene_type", "objects", "constraints", "construction_steps"],
+  "properties": {
+    "version": {"type": "string"},
+    "scene_type": {"const": "2d"},
+    "objects": {"type": "array"},
+    "constraints": {"type": "array"},
+    "construction_steps": {"type": "array"},
+    "metadata": {"type": "object"}
+  },
+  "additionalProperties": false
+}
