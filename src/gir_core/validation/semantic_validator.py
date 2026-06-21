@@ -8,7 +8,15 @@ from gir_core.models.constraints import (
     ParallelConstraint,
     PerpendicularConstraint,
 )
-from gir_core.models.objects import CircleObject, LineObject, SegmentObject, TriangleObject
+from gir_core.models.objects import (
+    AngleObject,
+    CircleObject,
+    LabelObject,
+    LineObject,
+    RayObject,
+    SegmentObject,
+    TriangleObject,
+)
 from gir_core.models.scene import GirScene
 from gir_core.models.validation import ValidationIssue, ValidationReport
 
@@ -18,6 +26,7 @@ def validate_scene(scene: GirScene) -> ValidationReport:
     object_ids = [obj.id for obj in scene.objects]
     constraint_ids = [constraint.id for constraint in scene.constraints]
     point_ids = {obj.id for obj in scene.objects if obj.type == "point"}
+    segment_ids = {obj.id for obj in scene.objects if obj.type == "segment"}
     object_id_set = set(object_ids)
     constraint_id_set = set(constraint_ids)
 
@@ -30,6 +39,13 @@ def validate_scene(scene: GirScene) -> ValidationReport:
             _require_points(obj.vertices, point_ids, f"{path}.vertices", issues)
         elif isinstance(obj, (SegmentObject, LineObject)):
             _require_points(obj.points, point_ids, f"{path}.points", issues)
+        elif isinstance(obj, RayObject):
+            _require_point(obj.start, point_ids, f"{path}.start", issues)
+            _require_point(obj.through, point_ids, f"{path}.through", issues)
+        elif isinstance(obj, AngleObject):
+            _require_points(obj.points, point_ids, f"{path}.points", issues)
+        elif isinstance(obj, LabelObject):
+            _require_object(obj.target, object_id_set, f"{path}.target", issues)
         elif isinstance(obj, CircleObject):
             _require_point(obj.center, point_ids, f"{path}.center", issues)
             if obj.radius_point is not None:
@@ -38,29 +54,20 @@ def validate_scene(scene: GirScene) -> ValidationReport:
     for index, constraint in enumerate(scene.constraints):
         path = f"constraints[{index}]"
         if isinstance(constraint, BelongsToConstraint):
-            _require_object(constraint.point, object_id_set, f"{path}.point", issues)
+            _require_point(constraint.point, point_ids, f"{path}.point", issues)
             _require_object(constraint.object, object_id_set, f"{path}.object", issues)
         elif isinstance(constraint, (PerpendicularConstraint, ParallelConstraint)):
             _require_objects(constraint.objects, object_id_set, f"{path}.objects", issues)
         elif isinstance(constraint, AltitudeConstraint):
-            _require_objects(
-                [constraint.from_point, constraint.to_object, constraint.foot, constraint.segment],
-                object_id_set,
-                path,
-                issues,
-            )
+            _require_point(constraint.from_point, point_ids, f"{path}.from_point", issues)
+            _require_object(constraint.to_object, object_id_set, f"{path}.to_object", issues)
+            _require_point(constraint.foot, point_ids, f"{path}.foot", issues)
+            _require_segment(constraint.segment, segment_ids, f"{path}.segment", issues)
         elif isinstance(constraint, MedianConstraint):
-            _require_objects(
-                [
-                    constraint.from_point,
-                    constraint.to_object,
-                    constraint.midpoint,
-                    constraint.segment,
-                ],
-                object_id_set,
-                path,
-                issues,
-            )
+            _require_point(constraint.from_point, point_ids, f"{path}.from_point", issues)
+            _require_object(constraint.to_object, object_id_set, f"{path}.to_object", issues)
+            _require_point(constraint.midpoint, point_ids, f"{path}.midpoint", issues)
+            _require_segment(constraint.segment, segment_ids, f"{path}.segment", issues)
         else:
             for ref in _generic_constraint_refs(constraint):
                 _require_object(ref, object_id_set, path, issues)
@@ -96,6 +103,22 @@ def _require_point(ref: str, point_ids: set[str], path: str, issues: list[Valida
             ValidationIssue(
                 code="missing_point_reference",
                 message=f"Missing point '{ref}'.",
+                path=path,
+            )
+        )
+
+
+def _require_segment(
+    ref: str,
+    segment_ids: set[str],
+    path: str,
+    issues: list[ValidationIssue],
+) -> None:
+    if ref not in segment_ids:
+        issues.append(
+            ValidationIssue(
+                code="missing_segment_reference",
+                message=f"Missing segment '{ref}'.",
                 path=path,
             )
         )
