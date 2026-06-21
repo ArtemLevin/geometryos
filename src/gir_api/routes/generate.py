@@ -35,6 +35,19 @@ class GenerateResponse(BaseModel):
 def generate(request: GenerateRequest) -> GenerateResponse:
     result = text_to_gir(request.input)
     report = validate_scene(result.gir) if result.gir is not None else None
-    svg = render_svg(result.gir) if result.gir is not None and "svg" in request.output and (report is None or report.is_valid) else None
-    tikz = render_tikz(result.gir) if result.gir is not None and "tikz" in request.output and (report is None or report.is_valid) else None
-    return GenerateResponse(status=result.status, confidence=result.confidence, gir=result.gir, validation_report=report, svg=svg, tikz=tikz, warnings=result.warnings)
+    svg: str | None = None
+    tikz: str | None = None
+    if result.gir is not None and (report is None or report.is_valid):
+        if "svg" in request.output:
+            svg = render_svg(result.gir)
+        if "tikz" in request.output:
+            tikz = render_tikz(result.gir)
+    return GenerateResponse(
+        status=result.status,
+        confidence=result.confidence,
+        gir=result.gir,
+        validation_report=report,
+        svg=svg,
+        tikz=tikz,
+        warnings=result.warnings,
+    )

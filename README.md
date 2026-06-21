@@ -7,7 +7,7 @@ GIR is a Python-first geometry compiler skeleton. Text is converted into draft G
 
 ## Setup and checks
 ```bash
-uv sync
+uv sync --dev
 uv run pytest
 uv run ruff check .
 uv run ruff format --check .

@@ -28,7 +28,7 @@ def validate_scene(scene: GirScene) -> ValidationReport:
         path = f"objects[{index}]"
         if isinstance(obj, TriangleObject):
             _require_points(obj.vertices, point_ids, f"{path}.vertices", issues)
-        elif isinstance(obj, SegmentObject | LineObject):
+        elif isinstance(obj, (SegmentObject, LineObject)):
             _require_points(obj.points, point_ids, f"{path}.points", issues)
         elif isinstance(obj, CircleObject):
             _require_point(obj.center, point_ids, f"{path}.center", issues)
@@ -40,7 +40,7 @@ def validate_scene(scene: GirScene) -> ValidationReport:
         if isinstance(constraint, BelongsToConstraint):
             _require_object(constraint.point, object_id_set, f"{path}.point", issues)
             _require_object(constraint.object, object_id_set, f"{path}.object", issues)
-        elif isinstance(constraint, PerpendicularConstraint | ParallelConstraint):
+        elif isinstance(constraint, (PerpendicularConstraint, ParallelConstraint)):
             _require_objects(constraint.objects, object_id_set, f"{path}.objects", issues)
         elif isinstance(constraint, AltitudeConstraint):
             _require_objects(
@@ -51,7 +51,12 @@ def validate_scene(scene: GirScene) -> ValidationReport:
             )
         elif isinstance(constraint, MedianConstraint):
             _require_objects(
-                [constraint.from_point, constraint.to_object, constraint.midpoint, constraint.segment],
+                [
+                    constraint.from_point,
+                    constraint.to_object,
+                    constraint.midpoint,
+                    constraint.segment,
+                ],
                 object_id_set,
                 path,
                 issues,
@@ -68,7 +73,10 @@ def validate_scene(scene: GirScene) -> ValidationReport:
                 issues.append(
                     ValidationIssue(
                         code="missing_constraint_reference",
-                        message=f"Construction step references missing constraint '{constraint_id}'.",
+                        message=(
+                            "Construction step references missing constraint "
+                            f"'{constraint_id}'."
+                        ),
                         path=f"construction_steps[{index}].constraints",
                     )
                 )
@@ -84,20 +92,47 @@ def _duplicates(values: list[str], code: str, kind: str, issues: list[Validation
 
 def _require_point(ref: str, point_ids: set[str], path: str, issues: list[ValidationIssue]) -> None:
     if ref not in point_ids:
-        issues.append(ValidationIssue(code="missing_point_reference", message=f"Missing point '{ref}'.", path=path))
+        issues.append(
+            ValidationIssue(
+                code="missing_point_reference",
+                message=f"Missing point '{ref}'.",
+                path=path,
+            )
+        )
 
 
-def _require_points(refs: Iterable[str], point_ids: set[str], path: str, issues: list[ValidationIssue]) -> None:
+def _require_points(
+    refs: Iterable[str],
+    point_ids: set[str],
+    path: str,
+    issues: list[ValidationIssue],
+) -> None:
     for ref in refs:
         _require_point(ref, point_ids, path, issues)
 
 
-def _require_object(ref: str, object_ids: set[str], path: str, issues: list[ValidationIssue]) -> None:
+def _require_object(
+    ref: str,
+    object_ids: set[str],
+    path: str,
+    issues: list[ValidationIssue],
+) -> None:
     if ref not in object_ids:
-        issues.append(ValidationIssue(code="missing_object_reference", message=f"Missing object '{ref}'.", path=path))
+        issues.append(
+            ValidationIssue(
+                code="missing_object_reference",
+                message=f"Missing object '{ref}'.",
+                path=path,
+            )
+        )
 
 
-def _require_objects(refs: Iterable[str], object_ids: set[str], path: str, issues: list[ValidationIssue]) -> None:
+def _require_objects(
+    refs: Iterable[str],
+    object_ids: set[str],
+    path: str,
+    issues: list[ValidationIssue],
+) -> None:
     for ref in refs:
         _require_object(ref, object_ids, path, issues)
 

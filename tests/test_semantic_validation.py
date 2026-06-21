@@ -22,15 +22,20 @@ def test_missing_reference_detected() -> None:
 
 
 def test_duplicate_object_id_detected() -> None:
-    data = scene().model_dump(); data["objects"].append(data["objects"][0])
-    assert any(i.code == "duplicate_object_id" for i in validate_scene(GirScene.model_validate(data)).issues)
+    data = scene().model_dump()
+    data["objects"].append(data["objects"][0])
+    report = validate_scene(GirScene.model_validate(data))
+    assert any(issue.code == "duplicate_object_id" for issue in report.issues)
 
 
 def test_duplicate_constraint_id_detected() -> None:
-    data = scene().model_dump(); data["constraints"].append(data["constraints"][0])
-    assert any(i.code == "duplicate_constraint_id" for i in validate_scene(GirScene.model_validate(data)).issues)
+    data = scene().model_dump()
+    data["constraints"].append(data["constraints"][0])
+    report = validate_scene(GirScene.model_validate(data))
+    assert any(issue.code == "duplicate_constraint_id" for issue in report.issues)
 
 
 def test_construction_step_missing_object_detected() -> None:
-    data = scene().model_dump(); data["construction_steps"][0]["objects"].append("ZZ")
+    data = scene().model_dump()
+    data["construction_steps"][0]["objects"].append("ZZ")
     assert not validate_scene(GirScene.model_validate(data)).is_valid
