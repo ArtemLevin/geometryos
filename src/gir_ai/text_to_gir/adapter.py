@@ -41,6 +41,20 @@ def text_to_gir(text: str) -> AiAdapterResult:
             gir=_median_scene(),
             explanation="Rule-based median MVP case.",
         )
+    if normalized.strip().rstrip(".") == "постройте треугольник abc":
+        return AiAdapterResult(
+            status="success",
+            confidence=0.86,
+            gir=_triangle_scene(),
+            explanation="Rule-based triangle MVP case.",
+        )
+    if "биссектрис" in normalized and ("угла a" in normalized or "угол a" in normalized):
+        return AiAdapterResult(
+            status="error",
+            confidence=0.0,
+            warnings=["No rule matched input."],
+            explanation="Specified angle bisector is not supported by the MVP adapter yet.",
+        )
     if "биссектрис" in normalized:
         return AiAdapterResult(
             status="needs_clarification",
@@ -73,6 +87,28 @@ def _base_objects(extra: list[dict[str, object]]) -> list[dict[str, object]]:
         {"id": "ABC", "type": "triangle", "vertices": ["A", "B", "C"]},
         *extra,
     ]
+
+
+def _triangle_scene() -> GirScene:
+    return GirScene.model_validate(
+        {
+            "version": "0.1",
+            "scene_type": "2d",
+            "objects": _base_objects([]),
+            "constraints": [
+                {"id": "c_noncol_abc", "type": "non_collinear", "points": ["A", "B", "C"]}
+            ],
+            "construction_steps": [
+                {
+                    "id": "s1",
+                    "action": "create_triangle",
+                    "objects": ["A", "B", "C", "BC", "ABC"],
+                    "constraints": ["c_noncol_abc"],
+                }
+            ],
+            "metadata": {"source": "rule_based_stub"},
+        }
+    )
 
 
 def _altitude_scene() -> GirScene:

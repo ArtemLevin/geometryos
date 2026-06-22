@@ -8,7 +8,7 @@ VERIFY_COMMANDS: tuple[tuple[str, ...], ...] = (
     ("ruff", "format", "--check", "."),
     ("mypy", "src"),
     ("pytest",),
-    (sys.executable, "scripts/export_schema.py"),
+    (sys.executable, "scripts/export_schema.py", "--check"),
     (sys.executable, "scripts/run_benchmarks.py"),
 )
 

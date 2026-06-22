@@ -12,9 +12,11 @@ uv run pytest
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy src
-uv run python scripts/export_schema.py
-uv run python scripts/export_schema.py --check
+uv run python scripts/export_schema.py --output schemas/gir.schema.json
+uv run python scripts/export_schema.py --check --output schemas/gir.schema.json
 uv run python scripts/run_benchmarks.py
+uv run gir benchmark --root .
+uv run gir export-schema --check --output schemas/gir.schema.json
 uv run python scripts/verify.py
 uv run uvicorn gir_api.main:app --reload
 ```
@@ -60,9 +62,13 @@ Ambiguous requests are first-class domain responses, not server errors. For exam
 gir validate benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir render-svg benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir render-tikz benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
-gir benchmark
-gir export-schema
+gir benchmark --root .
+gir benchmark --benchmarks-dir benchmarks/text_to_gir
+gir export-schema --output schemas/gir.schema.json
+gir export-schema --check --output schemas/gir.schema.json
 ```
+
+By default, `gir benchmark` uses the current working directory as the project root.
 
 ## Continuous Integration
 
