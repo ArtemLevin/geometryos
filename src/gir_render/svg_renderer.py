@@ -3,9 +3,15 @@ from html import escape
 from gir_core.layout.simple_layout import create_simple_layout
 from gir_core.models.layout import LayoutScene
 from gir_core.models.scene import GirScene
+from gir_core.validation.semantic_validator import validate_scene
 
 
 def render_svg(scene: GirScene) -> str:
+    # Design note: public GirScene render entrypoints are a validation boundary for
+    # library callers. Layout renderers stay pure and assume a prebuilt LayoutScene.
+    report = validate_scene(scene)
+    if not report.is_valid:
+        raise ValueError(f"Cannot render semantic-invalid GIR: {report.model_dump()}")
     layout = create_simple_layout(scene)
     return render_svg_layout(layout)
 
