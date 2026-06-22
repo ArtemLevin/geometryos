@@ -1,0 +1,1 @@
+{"status":"needs_clarification","ambiguities":[{"code":"missing_angle","message":"Не указано, биссектрису какого угла нужно построить.","options":["angle_A","angle_B","angle_C"]}]}
