@@ -22,6 +22,9 @@ from gir_core.models.validation import ValidationIssue, ValidationReport
 
 
 def validate_scene(scene: GirScene) -> ValidationReport:
+    # Design note: this validator is intentionally structural and type-aware, not a
+    # geometric solver. It catches dirty GIR references without pretending to prove
+    # full mathematical constructibility.
     issues: list[ValidationIssue] = []
     object_ids = [obj.id for obj in scene.objects]
     constraint_ids = [constraint.id for constraint in scene.constraints]

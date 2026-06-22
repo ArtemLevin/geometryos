@@ -51,6 +51,9 @@ def export_schema_command() -> None:
 
 
 def _run_benchmarks() -> dict[str, Any]:
+    # Design note: this intentionally duplicates the script runner instead of
+    # importing scripts.* because installed CLI packages should not depend on
+    # repository-local helper modules.
     total = passed = failed = 0
     failures: list[dict[str, Any]] = []
     for input_file in sorted((ROOT / "benchmarks" / "text_to_gir").glob("*/*.input.txt")):

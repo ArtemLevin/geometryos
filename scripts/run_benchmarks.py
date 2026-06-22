@@ -33,6 +33,9 @@ def run_benchmarks() -> dict[str, Any]:
 
 
 def _compare_result(result: AiAdapterResult, expected: dict[str, Any]) -> list[str]:
+    # Design note: benchmark comparison is a soft subset check for now. It protects
+    # the public contract while allowing harmless extra metadata or future derived
+    # construction artifacts to appear without breaking every MVP fixture.
     errors: list[str] = []
     expected_status = expected.get("status", "success")
     if result.status != expected_status:

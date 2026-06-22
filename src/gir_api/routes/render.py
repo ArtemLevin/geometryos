@@ -27,6 +27,8 @@ def render_tikz_endpoint(scene: GirScene) -> RenderResponse:
 
 
 def _validated_normalized_scene(scene: GirScene) -> GirScene:
+    # Design note: render endpoints are a trust boundary for external clients. They
+    # must reject semantic-invalid GIR instead of letting renderers silently draw it.
     draft_report = validate_scene(scene)
     if not draft_report.is_valid:
         raise HTTPException(status_code=422, detail=draft_report.model_dump())

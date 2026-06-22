@@ -3,6 +3,9 @@ from html import escape
 from gir_core.models.objects import PointObject, SegmentObject, TriangleObject
 from gir_core.models.scene import GirScene
 
+# Design note: hard-coded coordinates are acceptable only for the skeleton renderer.
+# They make the first vertical slice executable while preserving the rule that
+# mathematical meaning comes from GIR, not from renderer-side geometry inference.
 SVG_COORDS: dict[str, tuple[int, int]] = {
     "A": (120, 40),
     "B": (40, 180),

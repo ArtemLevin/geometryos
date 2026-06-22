@@ -44,6 +44,8 @@ def generate(request: GenerateRequest) -> GenerateResponse:
             warnings=result.warnings,
         )
 
+    # Design note: validate before normalization so malformed draft GIR is rejected
+    # at the boundary where it is produced, not hidden by later pipeline stages.
     draft_report = validate_scene(result.gir)
     if not draft_report.is_valid:
         return GenerateResponse(
@@ -54,6 +56,8 @@ def generate(request: GenerateRequest) -> GenerateResponse:
             warnings=[*result.warnings, "Draft GIR failed semantic validation."],
         )
 
+    # Design note: validate again after normalization because future normalizers may
+    # rewrite ids or add derived objects; renderers only see post-validation GIR.
     normalized_gir = normalize_gir(result.gir)
     normalized_report = validate_scene(normalized_gir)
     if not normalized_report.is_valid:

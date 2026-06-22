@@ -23,6 +23,9 @@ class AiAdapterResult(BaseModel):
 
 
 def text_to_gir(text: str) -> AiAdapterResult:
+    # Design note: the MVP adapter is intentionally rule-based. This keeps tests
+    # deterministic and prevents accidental Text -> LLM -> Render shortcuts before
+    # the GIR contract and benchmark suite are strong enough for real LLM output.
     normalized = text.lower().replace("ё", "е")
     if "треугольник abc" in normalized and "высот" in normalized:
         return AiAdapterResult(
@@ -60,6 +63,8 @@ def text_to_gir(text: str) -> AiAdapterResult:
 
 
 def _base_objects(extra: list[dict[str, object]]) -> list[dict[str, object]]:
+    # Design note: object ids are stable human-readable labels in the skeleton so
+    # benchmark diffs stay understandable; a future normalizer can add canonical ids.
     return [
         {"id": "A", "type": "point", "label": "A"},
         {"id": "B", "type": "point", "label": "B"},

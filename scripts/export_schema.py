@@ -28,6 +28,8 @@ def schema_is_up_to_date() -> bool:
 
 
 def _schema_json(schema: dict[str, Any]) -> str:
+    # Design note: sorted keys make schema-check deterministic and keep the committed
+    # machine contract reviewable even though Pydantic emits a large schema artifact.
     return json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True)
 
 

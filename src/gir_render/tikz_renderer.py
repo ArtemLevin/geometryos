@@ -1,6 +1,8 @@
 from gir_core.models.objects import PointObject, SegmentObject, TriangleObject
 from gir_core.models.scene import GirScene
 
+# Design note: this mirrors the SVG renderer's fixed MVP layout. TikZ output is
+# deliberately a renderer concern and must not repair or infer missing GIR objects.
 TIKZ_COORDS: dict[str, tuple[float, float]] = {
     "A": (0, 3),
     "B": (-2, 0),
