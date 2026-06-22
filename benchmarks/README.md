@@ -32,3 +32,26 @@ uv run gir benchmark --root .
 
 Passing benchmarks means current behavior matches the product contract; it does
 not mean every listed construction is supported yet.
+
+## gir_to_svg
+
+Render benchmarks verify that valid GIR scenes can be rendered through the public
+SVG renderer entrypoint. They use structural output checks, not pixel-perfect
+visual snapshots.
+
+Each case contains:
+
+- `<name>.gir.json` — semantically valid render input.
+- `<name>.expected.json` — structural expectations for the rendered artifact.
+
+Expected JSON supports:
+
+- `must_contain`
+- `must_not_contain`
+- `min_occurrences`
+
+## gir_to_tikz
+
+TikZ render benchmarks use the same format as `gir_to_svg`, but validate the
+public TikZ renderer output. Current render benchmark coverage intentionally
+stays within MVP layout labels `A`, `B`, `C`, `H`, and `M`.
