@@ -1,9 +1,10 @@
 from pathlib import Path
 
 from gir_ai.text_to_gir.adapter import text_to_gir
+from gir_benchmarks.runner import _compare_result, run_benchmarks
 from gir_core.models.scene import GirScene
 from gir_core.validation.semantic_validator import validate_scene
-from scripts.run_benchmarks import _compare_result, run_benchmarks
+from scripts.run_benchmarks import main as run_benchmarks_script
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,10 +21,16 @@ def test_expected_gir_files_parse_and_validate() -> None:
         assert validate_scene(scene).is_valid, path
 
 
-def test_run_benchmarks_soft_comparison_passes_current_fixtures() -> None:
-    summary = run_benchmarks()
+def test_benchmark_runner_returns_summary() -> None:
+    summary = run_benchmarks(root=ROOT)
+    assert summary["total"] > 0
     assert summary["failed"] == 0
     assert summary["passed"] == summary["total"]
+    assert summary["failures"] == []
+
+
+def test_script_wrapper_uses_shared_runner_summary() -> None:
+    assert run_benchmarks_script() == 0
 
 
 def test_soft_comparison_detects_missing_expected_object_id() -> None:
