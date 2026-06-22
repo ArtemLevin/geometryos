@@ -50,11 +50,11 @@ The response includes:
 - Render endpoints reject semantic-invalid GIR with HTTP 422 instead of drawing it.
 
 ## Failure modes
-- Invalid JSON schema or Pydantic parsing failure.
-- Semantic validation failure.
-- Missing references.
-- Ambiguous user intent requiring clarification.
-- Unsupported input that no adapter rule can parse.
+- Pydantic-invalid requests or structurally invalid GIR payloads return HTTP 422.
+- Pydantic-valid but semantic-invalid GIR sent to `/validate-gir` returns HTTP 200 with `is_valid: false` and populated `issues`.
+- Pydantic-valid but semantic-invalid GIR sent to `/render/svg` or `/render/tikz` returns HTTP 422 with a validation report in `detail`.
+- Ambiguous `/generate` input returns HTTP 200 with `status: "needs_clarification"`, `gir: null`, no rendered output and structured `ambiguities`.
+- Unsupported `/generate` input returns HTTP 200 with `status: "error"`; this is a domain failure, not a server error.
 
 ## Minimal JSON example
 Successful `/generate` response shape:
