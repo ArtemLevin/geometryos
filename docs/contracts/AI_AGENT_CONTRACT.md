@@ -20,6 +20,11 @@ AI-produced outputs must be explicit and machine-checkable where possible:
 - tests or benchmark fixtures for new behavior;
 - documentation updates when contracts or architecture semantics change.
 
+## GeometryOS StrictTail Protocol
+Non-trivial AI development work in this repository must follow the reusable protocol in `skills/geometryos/SKILL.md`. The protocol defines default full-mode planning, minimality checks, touched-area verification commands, intentional debt comments and PR reporting expectations.
+
+Tiny documentation-only edits may use lite mode, but they must still preserve the core GIR-first invariants below.
+
 ## Invariants
 - GIR is the source of truth.
 - Layers do not bypass validation.
