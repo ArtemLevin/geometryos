@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from typer.testing import CliRunner
+
 from gir_ai.text_to_gir.adapter import text_to_gir
 from gir_benchmarks.runner import _compare_result, run_benchmarks
 from gir_core.models.scene import GirScene
