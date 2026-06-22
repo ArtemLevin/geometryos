@@ -1,10 +1,18 @@
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 from gir_core.models.constraints import (
     AltitudeConstraint,
+    AngleBisectorConstraint,
     BelongsToConstraint,
+    CircumcircleConstraint,
+    CollinearConstraint,
+    EqualLengthConstraint,
+    IncircleConstraint,
+    IntersectionConstraint,
     MedianConstraint,
+    MidpointConstraint,
+    NonCollinearConstraint,
     ParallelConstraint,
     PerpendicularConstraint,
 )
@@ -20,6 +28,8 @@ from gir_core.models.objects import (
 from gir_core.models.scene import GirScene
 from gir_core.models.validation import ValidationIssue, ValidationReport
 
+_LINE_LIKE_TYPES = {"segment", "line", "ray"}
+
 
 def validate_scene(scene: GirScene) -> ValidationReport:
     # Design note: this validator is intentionally structural and type-aware, not a
@@ -28,8 +38,8 @@ def validate_scene(scene: GirScene) -> ValidationReport:
     issues: list[ValidationIssue] = []
     object_ids = [obj.id for obj in scene.objects]
     constraint_ids = [constraint.id for constraint in scene.constraints]
-    point_ids = {obj.id for obj in scene.objects if obj.type == "point"}
-    segment_ids = {obj.id for obj in scene.objects if obj.type == "segment"}
+    object_types = _object_type_map(scene)
+    point_ids = {obj_id for obj_id, obj_type in object_types.items() if obj_type == "point"}
     object_id_set = set(object_ids)
     constraint_id_set = set(constraint_ids)
 
@@ -57,20 +67,122 @@ def validate_scene(scene: GirScene) -> ValidationReport:
     for index, constraint in enumerate(scene.constraints):
         path = f"constraints[{index}]"
         if isinstance(constraint, BelongsToConstraint):
-            _require_point(constraint.point, point_ids, f"{path}.point", issues)
+            _require_constraint_target_type(
+                constraint.id, constraint.point, object_types, {"point"}, f"{path}.point", issues
+            )
             _require_object(constraint.object, object_id_set, f"{path}.object", issues)
+        elif isinstance(constraint, (CollinearConstraint, NonCollinearConstraint)):
+            _require_constraint_target_types(
+                constraint.id, constraint.points, object_types, {"point"}, f"{path}.points", issues
+            )
         elif isinstance(constraint, (PerpendicularConstraint, ParallelConstraint)):
-            _require_objects(constraint.objects, object_id_set, f"{path}.objects", issues)
+            _require_constraint_target_types(
+                constraint.id,
+                constraint.objects,
+                object_types,
+                _LINE_LIKE_TYPES,
+                f"{path}.objects",
+                issues,
+            )
+        elif isinstance(constraint, EqualLengthConstraint):
+            _require_constraint_target_types(
+                constraint.id,
+                constraint.objects,
+                object_types,
+                {"segment"},
+                f"{path}.objects",
+                issues,
+            )
+        elif isinstance(constraint, MidpointConstraint):
+            _require_constraint_target_type(
+                constraint.id, constraint.point, object_types, {"point"}, f"{path}.point", issues
+            )
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.object,
+                object_types,
+                _LINE_LIKE_TYPES,
+                f"{path}.object",
+                issues,
+            )
+        elif isinstance(constraint, IntersectionConstraint):
+            _require_constraint_target_type(
+                constraint.id, constraint.point, object_types, {"point"}, f"{path}.point", issues
+            )
+            _require_constraint_target_types(
+                constraint.id,
+                constraint.objects,
+                object_types,
+                _LINE_LIKE_TYPES,
+                f"{path}.objects",
+                issues,
+            )
         elif isinstance(constraint, AltitudeConstraint):
-            _require_point(constraint.from_point, point_ids, f"{path}.from_point", issues)
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.from_point,
+                object_types,
+                {"point"},
+                f"{path}.from_point",
+                issues,
+            )
             _require_object(constraint.to_object, object_id_set, f"{path}.to_object", issues)
-            _require_point(constraint.foot, point_ids, f"{path}.foot", issues)
-            _require_segment(constraint.segment, segment_ids, f"{path}.segment", issues)
+            _require_constraint_target_type(
+                constraint.id, constraint.foot, object_types, {"point"}, f"{path}.foot", issues
+            )
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.segment,
+                object_types,
+                {"segment"},
+                f"{path}.segment",
+                issues,
+            )
         elif isinstance(constraint, MedianConstraint):
-            _require_point(constraint.from_point, point_ids, f"{path}.from_point", issues)
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.from_point,
+                object_types,
+                {"point"},
+                f"{path}.from_point",
+                issues,
+            )
             _require_object(constraint.to_object, object_id_set, f"{path}.to_object", issues)
-            _require_point(constraint.midpoint, point_ids, f"{path}.midpoint", issues)
-            _require_segment(constraint.segment, segment_ids, f"{path}.segment", issues)
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.midpoint,
+                object_types,
+                {"point"},
+                f"{path}.midpoint",
+                issues,
+            )
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.segment,
+                object_types,
+                {"segment"},
+                f"{path}.segment",
+                issues,
+            )
+        elif isinstance(constraint, AngleBisectorConstraint):
+            _require_constraint_target_type(
+                constraint.id, constraint.angle, object_types, {"angle"}, f"{path}.angle", issues
+            )
+            _require_constraint_target_type(
+                constraint.id, constraint.ray, object_types, {"ray"}, f"{path}.ray", issues
+            )
+        elif isinstance(constraint, (CircumcircleConstraint, IncircleConstraint)):
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.triangle,
+                object_types,
+                {"triangle"},
+                f"{path}.triangle",
+                issues,
+            )
+            _require_constraint_target_type(
+                constraint.id, constraint.circle, object_types, {"circle"}, f"{path}.circle", issues
+            )
         else:
             for ref in _generic_constraint_refs(constraint):
                 _require_object(ref, object_id_set, path, issues)
@@ -91,6 +203,56 @@ def validate_scene(scene: GirScene) -> ValidationReport:
                 )
 
     return ValidationReport(is_valid=not issues, issues=issues)
+
+
+def _object_type_map(scene: GirScene) -> dict[str, str]:
+    return {obj.id: obj.type for obj in scene.objects}
+
+
+def _require_constraint_target_type(
+    constraint_id: str,
+    ref: str,
+    object_types: Mapping[str, str],
+    allowed_types: set[str],
+    path: str,
+    issues: list[ValidationIssue],
+) -> None:
+    actual_type = object_types.get(ref)
+    if actual_type is None:
+        issues.append(
+            ValidationIssue(
+                code="missing_object_reference",
+                message=f"Constraint '{constraint_id}' references missing object '{ref}'.",
+                path=path,
+            )
+        )
+        return
+    if actual_type not in allowed_types:
+        expected = sorted(allowed_types)
+        issues.append(
+            ValidationIssue(
+                code="invalid_constraint_target_type",
+                message=(
+                    f"Constraint '{constraint_id}' expects '{ref}' to reference one of "
+                    f"{expected}, got '{actual_type}'."
+                ),
+                path=path,
+            )
+        )
+
+
+def _require_constraint_target_types(
+    constraint_id: str,
+    refs: Iterable[str],
+    object_types: Mapping[str, str],
+    allowed_types: set[str],
+    path: str,
+    issues: list[ValidationIssue],
+) -> None:
+    for ref in refs:
+        _require_constraint_target_type(
+            constraint_id, ref, object_types, allowed_types, path, issues
+        )
 
 
 def _duplicates(values: list[str], code: str, kind: str, issues: list[ValidationIssue]) -> None:

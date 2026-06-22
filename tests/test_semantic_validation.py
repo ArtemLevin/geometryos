@@ -120,3 +120,136 @@ def test_median_midpoint_and_segment_types_are_checked() -> None:
     assert not report.is_valid
     assert any(issue.path == "constraints[0].midpoint" for issue in report.issues)
     assert any(issue.path == "constraints[0].segment" for issue in report.issues)
+
+
+def _scene_with_extra_geometry() -> dict[str, object]:
+    data = scene().model_dump()
+    data["objects"].extend(
+        [
+            {"id": "AB_line", "type": "line", "points": ["A", "B"]},
+            {"id": "ray_AH", "type": "ray", "start": "A", "through": "H"},
+            {"id": "angle_A", "type": "angle", "points": ["B", "A", "C"]},
+            {"id": "circle_A", "type": "circle", "center": "A", "radius_point": "B"},
+        ]
+    )
+    return data
+
+
+def test_midpoint_point_must_be_point() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [{"id": "c_mid_bad", "type": "midpoint", "point": "BC", "object": "AH"}]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[0].point"
+        for issue in report.issues
+    )
+
+
+def test_intersection_requires_point_and_line_like_objects() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [
+        {
+            "id": "c_inter_bad",
+            "type": "intersection",
+            "point": "AH",
+            "objects": ["AB_line", "A"],
+        }
+    ]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(issue.path == "constraints[0].point" for issue in report.issues)
+    assert any(issue.path == "constraints[0].objects" for issue in report.issues)
+
+
+def test_circumcircle_circle_must_be_circle() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [
+        {"id": "c_circ_bad", "type": "circumcircle", "triangle": "ABC", "circle": "A"}
+    ]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[0].circle"
+        for issue in report.issues
+    )
+
+
+def test_incircle_requires_triangle_and_circle() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [
+        {"id": "c_in_bad", "type": "incircle", "triangle": "circle_A", "circle": "ABC"}
+    ]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(issue.path == "constraints[0].triangle" for issue in report.issues)
+    assert any(issue.path == "constraints[0].circle" for issue in report.issues)
+
+
+def test_angle_bisector_requires_angle_and_ray() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [
+        {"id": "c_bis_bad", "type": "angle_bisector", "angle": "ABC", "ray": "AH"}
+    ]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[0].angle"
+        for issue in report.issues
+    )
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[0].ray"
+        for issue in report.issues
+    )
+
+
+def test_parallel_requires_line_like_objects() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [
+        {"id": "c_parallel_bad", "type": "parallel", "objects": ["AB_line", "A"]}
+    ]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[0].objects"
+        for issue in report.issues
+    )
+
+
+def test_perpendicular_requires_line_like_objects() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [{"id": "c_perp_bad", "type": "perpendicular", "objects": ["A", "BC"]}]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(issue.path == "constraints[0].objects" for issue in report.issues)
+
+
+def test_equal_length_requires_segments() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [
+        {"id": "c_equal_bad", "type": "equal_length", "objects": ["AH", "AB_line"]}
+    ]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(issue.path == "constraints[0].objects" for issue in report.issues)
+
+
+def test_collinear_requires_points() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [{"id": "c_col_bad", "type": "collinear", "points": ["A", "BC", "C"]}]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[0].points"
+        for issue in report.issues
+    )
+
+
+def test_non_collinear_requires_points() -> None:
+    data = _scene_with_extra_geometry()
+    data["constraints"] = [
+        {"id": "c_noncol_bad", "type": "non_collinear", "points": ["A", "BC", "C"]}
+    ]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(issue.path == "constraints[0].points" for issue in report.issues)

@@ -10,3 +10,15 @@ M is midpoint of BC; AM is the median from A to BC.
 
 ## Ambiguous case
 “Проведите биссектрису” in triangle ABC is ambiguous until angle A, B or C is specified.
+
+
+## Constraint target types
+GIR 0.1 validation is structural and type-aware, but it is not a solver. It checks that constraint roles reference compatible object types:
+
+- collinearity constraints target points;
+- parallel and perpendicular constraints target line-like objects (`segment`, `line`, `ray`);
+- midpoint and intersection constraints distinguish constructed points from carrier objects;
+- angle bisectors target an `angle` and a `ray`;
+- circumcircle and incircle constraints target a `triangle` and a `circle`.
+
+These checks prevent mathematically dirty GIR such as using a point where a circle is required, while still avoiding premature proof of constructibility.
