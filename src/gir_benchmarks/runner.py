@@ -7,11 +7,22 @@ from gir_core.models.scene import GirScene
 from gir_core.validation.semantic_validator import validate_scene
 
 
-def run_benchmarks(root: Path | None = None) -> dict[str, Any]:
-    project_root = root or Path.cwd()
+def run_benchmarks(
+    root: Path | None = None,
+    benchmarks_dir: Path | None = None,
+) -> dict[str, Any]:
+    project_root = (root or Path.cwd()).resolve()
+    text_to_gir_dir = (
+        benchmarks_dir.resolve()
+        if benchmarks_dir is not None
+        else project_root / "benchmarks" / "text_to_gir"
+    )
+    if not text_to_gir_dir.is_dir():
+        raise FileNotFoundError(f"Benchmarks directory not found: {text_to_gir_dir}")
+
     total = passed = failed = 0
     failures: list[dict[str, Any]] = []
-    for input_file in sorted((project_root / "benchmarks" / "text_to_gir").glob("*/*.input.txt")):
+    for input_file in sorted(text_to_gir_dir.glob("*/*.input.txt")):
         total += 1
         result = text_to_gir(input_file.read_text(encoding="utf-8"))
         expected_file = _expected_file(input_file)
@@ -19,7 +30,7 @@ def run_benchmarks(root: Path | None = None) -> dict[str, Any]:
         errors = _compare_result(result, expected)
         if errors:
             failed += 1
-            failures.append({"case": str(input_file.relative_to(project_root)), "errors": errors})
+            failures.append({"case": _case_name(input_file, project_root), "errors": errors})
         else:
             passed += 1
     return {"total": total, "passed": passed, "failed": failed, "failures": failures}
@@ -83,6 +94,13 @@ def _missing_subset(expected: set[str], actual: set[str], label: str) -> list[st
     if not missing:
         return []
     return [f"missing expected {label}: {', '.join(missing)}"]
+
+
+def _case_name(input_file: Path, project_root: Path) -> str:
+    try:
+        return str(input_file.relative_to(project_root))
+    except ValueError:
+        return str(input_file)
 
 
 def _expected_file(input_file: Path) -> Path:

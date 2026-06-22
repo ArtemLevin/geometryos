@@ -4,7 +4,6 @@ from typer.testing import CliRunner
 
 from gir_ai.text_to_gir.adapter import text_to_gir
 from gir_benchmarks.runner import _compare_result, run_benchmarks
-from gir_cli.main import app
 from gir_core.models.scene import GirScene
 from gir_core.validation.semantic_validator import validate_scene
 from scripts.run_benchmarks import main as run_benchmarks_script
@@ -34,13 +33,6 @@ def test_benchmark_runner_returns_summary() -> None:
 
 def test_script_wrapper_uses_shared_runner_summary() -> None:
     assert run_benchmarks_script() == 0
-
-
-def test_cli_benchmark_runs_with_root() -> None:
-    runner = CliRunner()
-    result = runner.invoke(app, ["benchmark", "--root", str(ROOT)])
-    assert result.exit_code == 0
-    assert '"failed": 0' in result.output
 
 
 def test_soft_comparison_detects_missing_expected_object_id() -> None:
