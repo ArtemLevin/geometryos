@@ -1,16 +1,3 @@
-import pytest
-
-from gir_api.main import app
-
-
-@pytest.fixture
-def client() -> object:
-    pytest.importorskip("httpx")
-    from fastapi.testclient import TestClient
-
-    return TestClient(app)
-
-
 def test_generate_altitude_returns_svg_tikz_and_explanation(client: object) -> None:
     response = client.post(  # type: ignore[attr-defined]
         "/generate",

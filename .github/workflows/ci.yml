@@ -34,8 +34,8 @@ jobs:
       - name: Tests
         run: uv run pytest
 
-      - name: Export schema
-        run: uv run python scripts/export_schema.py
+      - name: Check schema freshness
+        run: uv run python scripts/export_schema.py --check
 
       - name: Benchmarks
         run: uv run python scripts/run_benchmarks.py
