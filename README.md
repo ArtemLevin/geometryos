@@ -29,6 +29,30 @@ make api
 make validate BENCHMARK_GIR=benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 ```
 
+## API ambiguity response
+
+Ambiguous requests are first-class domain responses, not server errors. For example:
+
+```json
+{
+  "status": "needs_clarification",
+  "confidence": 0.4,
+  "gir": null,
+  "validation_report": null,
+  "svg": null,
+  "tikz": null,
+  "warnings": [],
+  "ambiguities": [
+    {
+      "code": "missing_angle",
+      "message": "Не указано, биссектрису какого угла нужно построить.",
+      "options": ["angle_A", "angle_B", "angle_C"]
+    }
+  ],
+  "explanation": "Bisector request lacks angle target."
+}
+```
+
 ## CLI
 ```bash
 gir validate benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json

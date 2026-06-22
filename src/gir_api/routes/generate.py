@@ -3,7 +3,7 @@ from typing import Literal
 from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field
 
-from gir_ai.text_to_gir.adapter import text_to_gir
+from gir_ai.text_to_gir.adapter import AiAmbiguity, text_to_gir
 from gir_core.models.scene import GirScene
 from gir_core.models.validation import ValidationReport
 from gir_core.normalize import normalize_gir
@@ -30,6 +30,8 @@ class GenerateResponse(BaseModel):
     svg: str | None = None
     tikz: str | None = None
     warnings: list[str]
+    ambiguities: list[AiAmbiguity] = Field(default_factory=list)
+    explanation: str | None = None
 
 
 @router.post("/generate")
@@ -42,6 +44,8 @@ def generate(request: GenerateRequest) -> GenerateResponse:
             gir=None,
             validation_report=None,
             warnings=result.warnings,
+            ambiguities=result.ambiguities,
+            explanation=result.explanation,
         )
 
     # Design note: validate before normalization so malformed draft GIR is rejected
@@ -54,6 +58,8 @@ def generate(request: GenerateRequest) -> GenerateResponse:
             gir=result.gir,
             validation_report=draft_report,
             warnings=[*result.warnings, "Draft GIR failed semantic validation."],
+            ambiguities=result.ambiguities,
+            explanation=result.explanation,
         )
 
     # Design note: validate again after normalization because future normalizers may
@@ -67,6 +73,8 @@ def generate(request: GenerateRequest) -> GenerateResponse:
             gir=normalized_gir,
             validation_report=normalized_report,
             warnings=[*result.warnings, "Normalized GIR failed semantic validation."],
+            ambiguities=result.ambiguities,
+            explanation=result.explanation,
         )
 
     svg: str | None = None
@@ -84,4 +92,6 @@ def generate(request: GenerateRequest) -> GenerateResponse:
         svg=svg,
         tikz=tikz,
         warnings=result.warnings,
+        ambiguities=result.ambiguities,
+        explanation=result.explanation,
     )
