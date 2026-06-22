@@ -27,9 +27,7 @@ def test_run_benchmarks_soft_comparison_passes_current_fixtures() -> None:
 
 
 def test_soft_comparison_detects_missing_expected_object_id() -> None:
-    result = text_to_gir(
-        "Постройте треугольник ABC. Проведите высоту из вершины A к стороне BC."
-    )
+    result = text_to_gir("Постройте треугольник ABC. Проведите высоту из вершины A к стороне BC.")
     assert result.gir is not None
     expected = result.gir.model_dump()
     expected["objects"].append({"id": "ZZ", "type": "point", "label": "ZZ"})

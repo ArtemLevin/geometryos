@@ -1,5 +1,5 @@
 import pytest
-from pydantic import ValidationError, TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 
 from gir_core.models.objects import GirObject, PointObject, SegmentObject, TriangleObject
 

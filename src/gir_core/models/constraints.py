@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -87,20 +87,18 @@ class IncircleConstraint(ConstraintBase):
 
 
 GirConstraint = Annotated[
-    Union[
-        BelongsToConstraint,
-        CollinearConstraint,
-        NonCollinearConstraint,
-        ParallelConstraint,
-        PerpendicularConstraint,
-        EqualLengthConstraint,
-        MidpointConstraint,
-        IntersectionConstraint,
-        AltitudeConstraint,
-        MedianConstraint,
-        AngleBisectorConstraint,
-        CircumcircleConstraint,
-        IncircleConstraint,
-    ],
+    BelongsToConstraint
+    | CollinearConstraint
+    | NonCollinearConstraint
+    | ParallelConstraint
+    | PerpendicularConstraint
+    | EqualLengthConstraint
+    | MidpointConstraint
+    | IntersectionConstraint
+    | AltitudeConstraint
+    | MedianConstraint
+    | AngleBisectorConstraint
+    | CircumcircleConstraint
+    | IncircleConstraint,
     Field(discriminator="type"),
 ]

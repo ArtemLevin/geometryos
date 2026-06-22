@@ -8,7 +8,7 @@ BENCHMARK_GIR ?= benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 HOST ?= 127.0.0.1
 PORT ?= 8000
 
-.PHONY: help sync install test lint format format-check typecheck schema benchmarks check api \
+.PHONY: help sync install test lint format format-check typecheck schema schema-check benchmarks check api \
 	validate render-svg render-tikz cli-benchmark cli-export-schema clean py-compile
 
 help: ## Show available Make targets.
@@ -37,10 +37,13 @@ typecheck: ## Run mypy over src/.
 schema: ## Export GIR JSON Schema to schemas/gir.schema.json.
 	$(UV_RUN) $(PYTHON) scripts/export_schema.py
 
+schema-check: ## Check that committed GIR JSON Schema is up to date.
+	$(UV_RUN) $(PYTHON) scripts/export_schema.py --check
+
 benchmarks: ## Run text-to-GIR benchmark checks.
 	$(UV_RUN) $(PYTHON) scripts/run_benchmarks.py
 
-check: test lint format-check typecheck schema benchmarks ## Run all required verification checks.
+check: test lint format-check typecheck schema-check benchmarks ## Run all required verification checks.
 
 api: ## Start the FastAPI development server.
 	$(UV_RUN) uvicorn gir_api.main:app --reload --host $(HOST) --port $(PORT)

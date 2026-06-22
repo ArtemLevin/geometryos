@@ -24,9 +24,7 @@ def run_benchmarks() -> dict[str, Any]:
         errors = _compare_result(result, expected)
         if errors:
             failed += 1
-            failures.append(
-                {"case": str(input_file.relative_to(ROOT)), "errors": errors}
-            )
+            failures.append({"case": str(input_file.relative_to(ROOT)), "errors": errors})
         else:
             passed += 1
     summary = {"total": total, "passed": passed, "failed": failed, "failures": failures}

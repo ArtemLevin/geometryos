@@ -14,8 +14,7 @@ SVG_COORDS: dict[str, tuple[int, int]] = {
 
 def render_svg(scene: GirScene) -> str:
     parts = [
-        '<svg xmlns="http://www.w3.org/2000/svg" '
-        'width="280" height="220" viewBox="0 0 280 220">'
+        '<svg xmlns="http://www.w3.org/2000/svg" width="280" height="220" viewBox="0 0 280 220">'
     ]
     parts.append('<rect width="100%" height="100%" fill="white"/>')
     for obj in scene.objects:
@@ -27,8 +26,7 @@ def render_svg(scene: GirScene) -> str:
         elif isinstance(obj, SegmentObject) and all(point in SVG_COORDS for point in obj.points):
             (x1, y1), (x2, y2) = (SVG_COORDS[obj.points[0]], SVG_COORDS[obj.points[1]])
             parts.append(
-                f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
-                'stroke="#2563eb" stroke-width="2"/>'
+                f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#2563eb" stroke-width="2"/>'
             )
     for obj in scene.objects:
         if isinstance(obj, PointObject) and obj.id in SVG_COORDS:

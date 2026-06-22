@@ -13,6 +13,7 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy src
 uv run python scripts/export_schema.py
+uv run python scripts/export_schema.py --check
 uv run python scripts/run_benchmarks.py
 uv run uvicorn gir_api.main:app --reload
 ```
@@ -23,6 +24,7 @@ uv run uvicorn gir_api.main:app --reload
 make help
 make sync
 make check
+make schema-check
 make api
 make validate BENCHMARK_GIR=benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 ```

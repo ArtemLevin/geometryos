@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import Iterable
+from collections.abc import Iterable
 
 from gir_core.models.constraints import (
     AltitudeConstraint,
@@ -81,8 +81,7 @@ def validate_scene(scene: GirScene) -> ValidationReport:
                     ValidationIssue(
                         code="missing_constraint_reference",
                         message=(
-                            "Construction step references missing constraint "
-                            f"'{constraint_id}'."
+                            f"Construction step references missing constraint '{constraint_id}'."
                         ),
                         path=f"construction_steps[{index}].constraints",
                     )

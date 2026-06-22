@@ -59,9 +59,7 @@ def test_angle_points_must_be_points() -> None:
 
 def test_label_target_must_exist() -> None:
     data = scene().model_dump()
-    data["objects"].append(
-        {"id": "label_bad", "type": "label", "text": "missing", "target": "ZZ"}
-    )
+    data["objects"].append({"id": "label_bad", "type": "label", "text": "missing", "target": "ZZ"})
     report = validate_scene(GirScene.model_validate(data))
     assert not report.is_valid
     assert any(issue.path == "objects[7].target" for issue in report.issues)

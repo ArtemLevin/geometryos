@@ -1,9 +1,9 @@
 import pytest
 from fastapi import HTTPException
 
+from gir_ai.text_to_gir.adapter import text_to_gir
 from gir_api.routes.generate import GenerateRequest, generate
 from gir_api.routes.render import render_svg_endpoint
-from gir_ai.text_to_gir.adapter import text_to_gir
 from gir_core.models.scene import GirScene
 
 

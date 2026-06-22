@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -59,15 +59,13 @@ class LabelObject(StrictModel):
 
 
 GirObject = Annotated[
-    Union[
-        PointObject,
-        SegmentObject,
-        LineObject,
-        RayObject,
-        CircleObject,
-        TriangleObject,
-        AngleObject,
-        LabelObject,
-    ],
+    PointObject
+    | SegmentObject
+    | LineObject
+    | RayObject
+    | CircleObject
+    | TriangleObject
+    | AngleObject
+    | LabelObject,
     Field(discriminator="type"),
 ]
