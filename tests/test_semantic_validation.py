@@ -91,6 +91,104 @@ def test_altitude_segment_must_be_segment() -> None:
     assert any(issue.path == "constraints[3].segment" for issue in report.issues)
 
 
+def test_triangle_vertices_must_be_distinct() -> None:
+    data = scene().model_dump()
+    data["objects"][4]["vertices"] = ["A", "A", "C"]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "duplicate_role_reference" and issue.path == "objects[4].vertices"
+        for issue in report.issues
+    )
+
+
+def test_segment_points_must_be_distinct() -> None:
+    data = scene().model_dump()
+    data["objects"][3]["points"] = ["B", "B"]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "duplicate_role_reference" and issue.path == "objects[3].points"
+        for issue in report.issues
+    )
+
+
+def test_ray_start_and_through_must_be_distinct() -> None:
+    data = scene().model_dump()
+    data["objects"].append({"id": "r_bad", "type": "ray", "start": "A", "through": "A"})
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "duplicate_role_reference" and issue.path == "objects[7]"
+        for issue in report.issues
+    )
+
+
+def test_angle_points_must_be_distinct() -> None:
+    data = scene().model_dump()
+    data["objects"].append({"id": "angle_bad", "type": "angle", "points": ["A", "B", "A"]})
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "duplicate_role_reference" and issue.path == "objects[7].points"
+        for issue in report.issues
+    )
+
+
+def test_non_collinear_points_must_be_distinct() -> None:
+    data = scene().model_dump()
+    data["constraints"][0]["points"] = ["A", "A", "C"]
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "duplicate_role_reference" and issue.path == "constraints[0].points"
+        for issue in report.issues
+    )
+
+
+def test_altitude_target_must_be_line_like() -> None:
+    data = scene().model_dump()
+    data["constraints"][3]["to_object"] = "ABC"
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[3].to_object"
+        for issue in report.issues
+    )
+
+
+def test_median_target_must_be_segment() -> None:
+    data = {
+        "version": "0.1",
+        "scene_type": "2d",
+        "objects": [
+            {"id": "A", "type": "point", "label": "A"},
+            {"id": "B", "type": "point", "label": "B"},
+            {"id": "C", "type": "point", "label": "C"},
+            {"id": "ABC", "type": "triangle", "vertices": ["A", "B", "C"]},
+            {"id": "M", "type": "point", "label": "M"},
+            {"id": "AM", "type": "segment", "points": ["A", "M"]},
+        ],
+        "constraints": [
+            {
+                "id": "c_median_bad_target",
+                "type": "median",
+                "from_point": "A",
+                "to_object": "ABC",
+                "midpoint": "M",
+                "segment": "AM",
+            }
+        ],
+        "construction_steps": [],
+    }
+    report = validate_scene(GirScene.model_validate(data))
+    assert not report.is_valid
+    assert any(
+        issue.code == "invalid_constraint_target_type" and issue.path == "constraints[0].to_object"
+        for issue in report.issues
+    )
+
+
 def test_median_midpoint_and_segment_types_are_checked() -> None:
     data = {
         "version": "0.1",

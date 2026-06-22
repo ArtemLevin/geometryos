@@ -26,22 +26,11 @@ def text_to_gir(text: str) -> AiAdapterResult:
     # Design note: the MVP adapter is intentionally rule-based. This keeps tests
     # deterministic and prevents accidental Text -> LLM -> Render shortcuts before
     # the GIR contract and benchmark suite are strong enough for real LLM output.
-    normalized = text.lower().replace("ё", "е")
-    if "треугольник abc" in normalized and "высот" in normalized:
-        return AiAdapterResult(
-            status="success",
-            confidence=0.9,
-            gir=_altitude_scene(),
-            explanation="Rule-based altitude MVP case.",
-        )
-    if "треугольник abc" in normalized and "медиан" in normalized:
-        return AiAdapterResult(
-            status="success",
-            confidence=0.88,
-            gir=_median_scene(),
-            explanation="Rule-based median MVP case.",
-        )
-    if "биссектрис" in normalized:
+    normalized = _normalize_text(text)
+    if "треугольник abc" not in normalized:
+        return _unsupported_result()
+
+    if "биссектрис" in normalized and not _mentions_angle_a(normalized):
         return AiAdapterResult(
             status="needs_clarification",
             confidence=0.4,
@@ -54,6 +43,58 @@ def text_to_gir(text: str) -> AiAdapterResult:
             ],
             explanation="Bisector request lacks angle target.",
         )
+    if "биссектрис" in normalized and _mentions_angle_a(normalized):
+        return AiAdapterResult(
+            status="success",
+            confidence=0.86,
+            gir=_angle_bisector_scene(),
+            explanation="Rule-based angle bisector MVP case.",
+        )
+    if "высот" in normalized:
+        return AiAdapterResult(
+            status="success",
+            confidence=0.9,
+            gir=_altitude_scene(),
+            explanation="Rule-based altitude MVP case.",
+        )
+    if "медиан" in normalized:
+        return AiAdapterResult(
+            status="success",
+            confidence=0.88,
+            gir=_median_scene(),
+            explanation="Rule-based median MVP case.",
+        )
+    if "середин" in normalized:
+        return AiAdapterResult(
+            status="success",
+            confidence=0.86,
+            gir=_midpoint_scene(),
+            explanation="Rule-based midpoint MVP case.",
+        )
+    if _is_triangle_only(normalized):
+        return AiAdapterResult(
+            status="success",
+            confidence=0.86,
+            gir=_triangle_scene(),
+            explanation="Rule-based triangle MVP case.",
+        )
+
+    return _unsupported_result()
+
+
+def _normalize_text(text: str) -> str:
+    return " ".join(text.lower().replace("ё", "е").strip().split())
+
+
+def _mentions_angle_a(text: str) -> bool:
+    return "угла a" in text or "угол a" in text
+
+
+def _is_triangle_only(text: str) -> bool:
+    return text.rstrip(" .") == "постройте треугольник abc"
+
+
+def _unsupported_result() -> AiAdapterResult:
     return AiAdapterResult(
         status="error",
         confidence=0.0,
@@ -73,6 +114,110 @@ def _base_objects(extra: list[dict[str, object]]) -> list[dict[str, object]]:
         {"id": "ABC", "type": "triangle", "vertices": ["A", "B", "C"]},
         *extra,
     ]
+
+
+def _triangle_scene() -> GirScene:
+    return GirScene.model_validate(
+        {
+            "version": "0.1",
+            "scene_type": "2d",
+            "objects": _base_objects(
+                [
+                    {"id": "AB", "type": "segment", "points": ["A", "B"]},
+                    {"id": "CA", "type": "segment", "points": ["C", "A"]},
+                ]
+            ),
+            "constraints": [
+                {"id": "c_noncol_abc", "type": "non_collinear", "points": ["A", "B", "C"]}
+            ],
+            "construction_steps": [
+                {
+                    "id": "s1",
+                    "action": "create_triangle",
+                    "objects": ["A", "B", "C", "AB", "BC", "CA", "ABC"],
+                    "constraints": ["c_noncol_abc"],
+                }
+            ],
+            "metadata": {"source": "rule_based_stub"},
+        }
+    )
+
+
+def _midpoint_scene() -> GirScene:
+    return GirScene.model_validate(
+        {
+            "version": "0.1",
+            "scene_type": "2d",
+            "objects": _base_objects(
+                [
+                    {"id": "AB", "type": "segment", "points": ["A", "B"]},
+                    {"id": "CA", "type": "segment", "points": ["C", "A"]},
+                    {"id": "M", "type": "point", "label": "M"},
+                ]
+            ),
+            "constraints": [
+                {"id": "c_noncol_abc", "type": "non_collinear", "points": ["A", "B", "C"]},
+                {"id": "c_mid_m_bc", "type": "midpoint", "point": "M", "object": "BC"},
+            ],
+            "construction_steps": [
+                {
+                    "id": "s1",
+                    "action": "create_triangle",
+                    "objects": ["A", "B", "C", "AB", "BC", "CA", "ABC"],
+                    "constraints": ["c_noncol_abc"],
+                },
+                {
+                    "id": "s2",
+                    "action": "construct_midpoint",
+                    "objects": ["M"],
+                    "constraints": ["c_mid_m_bc"],
+                },
+            ],
+            "metadata": {"source": "rule_based_stub"},
+        }
+    )
+
+
+def _angle_bisector_scene() -> GirScene:
+    return GirScene.model_validate(
+        {
+            "version": "0.1",
+            "scene_type": "2d",
+            "objects": _base_objects(
+                [
+                    {"id": "AB", "type": "segment", "points": ["A", "B"]},
+                    {"id": "CA", "type": "segment", "points": ["C", "A"]},
+                    {"id": "D", "type": "point", "label": "D"},
+                    {"id": "angle_BAC", "type": "angle", "points": ["B", "A", "C"]},
+                    {"id": "bisector_A", "type": "ray", "start": "A", "through": "D"},
+                ]
+            ),
+            "constraints": [
+                {"id": "c_noncol_abc", "type": "non_collinear", "points": ["A", "B", "C"]},
+                {
+                    "id": "angle_bisector_A",
+                    "type": "angle_bisector",
+                    "angle": "angle_BAC",
+                    "ray": "bisector_A",
+                },
+            ],
+            "construction_steps": [
+                {
+                    "id": "s1",
+                    "action": "create_triangle",
+                    "objects": ["A", "B", "C", "AB", "BC", "CA", "ABC"],
+                    "constraints": ["c_noncol_abc"],
+                },
+                {
+                    "id": "s2",
+                    "action": "construct_angle_bisector",
+                    "objects": ["D", "angle_BAC", "bisector_A"],
+                    "constraints": ["angle_bisector_A"],
+                },
+            ],
+            "metadata": {"source": "rule_based_stub"},
+        }
+    )
 
 
 def _altitude_scene() -> GirScene:
