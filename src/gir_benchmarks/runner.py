@@ -47,6 +47,7 @@ def _compare_result(result: AiAdapterResult, expected: dict[str, Any]) -> list[s
         return errors
 
     if expected_status != "success":
+        errors.extend(_missing_ambiguity_codes(result, expected))
         return errors
 
     if result.gir is None:
@@ -87,6 +88,22 @@ def _compare_result(result: AiAdapterResult, expected: dict[str, Any]) -> list[s
         )
     )
     return errors
+
+
+def _missing_ambiguity_codes(result: AiAdapterResult, expected: dict[str, Any]) -> list[str]:
+    expected_codes = {
+        item["code"]
+        for item in expected.get("ambiguities", [])
+        if isinstance(item, dict) and isinstance(item.get("code"), str)
+    }
+    if not expected_codes:
+        return []
+
+    actual_codes = {ambiguity.code for ambiguity in result.ambiguities}
+    missing = sorted(expected_codes - actual_codes)
+    if not missing:
+        return []
+    return [f"missing expected ambiguity codes: {', '.join(missing)}"]
 
 
 def _missing_subset(expected: set[str], actual: set[str], label: str) -> list[str]:
