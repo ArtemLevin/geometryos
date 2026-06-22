@@ -18,9 +18,10 @@ Supported statuses:
 - `needs_clarification` — adapter returns structured ambiguities and no GIR.
 - `error` — adapter explicitly rejects unsupported or malformed input and returns no GIR.
 
-Current MVP success coverage is intentionally small: triangle, altitude, and
-median prompts for triangle ABC. Other school-geometry constructions are tracked
-as explicit `error` cases until their adapter support is implemented in later PRs.
+Current MVP success coverage is intentionally small and deterministic: triangle
+ABC, altitude from A to BC, median from A to BC, midpoint M of BC, and angle
+bisector of angle A. Other school-geometry constructions are tracked as explicit
+`error` cases until their adapter support is implemented in later PRs.
 
 Run benchmarks with:
 
