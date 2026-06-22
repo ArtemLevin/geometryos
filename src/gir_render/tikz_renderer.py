@@ -1,32 +1,26 @@
-from gir_core.models.objects import PointObject, SegmentObject, TriangleObject
+from gir_core.layout.simple_layout import create_simple_layout
+from gir_core.models.layout import LayoutPoint, LayoutScene
 from gir_core.models.scene import GirScene
-
-# Design note: this mirrors the SVG renderer's fixed MVP layout. TikZ output is
-# deliberately a renderer concern and must not repair or infer missing GIR objects.
-TIKZ_COORDS: dict[str, tuple[float, float]] = {
-    "A": (0, 3),
-    "B": (-2, 0),
-    "C": (3, 0),
-    "H": (0, 0),
-    "M": (0.5, 0),
-}
 
 
 def render_tikz(scene: GirScene) -> str:
+    layout = create_simple_layout(scene)
+    return render_tikz_layout(layout)
+
+
+def render_tikz_layout(layout: LayoutScene) -> str:
     lines = [r"\begin{tikzpicture}"]
-    for obj in scene.objects:
-        if isinstance(obj, PointObject) and obj.id in TIKZ_COORDS:
-            x, y = TIKZ_COORDS[obj.id]
-            lines.append(f"  \\coordinate ({obj.id}) at ({x:g},{y:g});")
-    for obj in scene.objects:
-        if isinstance(obj, TriangleObject) and all(v in TIKZ_COORDS for v in obj.vertices):
-            a, b, c = obj.vertices
-            lines.append(f"  \\draw ({a})--({b})--({c})--cycle;")
-        elif isinstance(obj, SegmentObject) and all(point in TIKZ_COORDS for point in obj.points):
-            a, b = obj.points
-            lines.append(f"  \\draw[blue] ({a})--({b});")
-    for obj in scene.objects:
-        if isinstance(obj, PointObject) and obj.id in TIKZ_COORDS:
-            lines.append(f"  \\node[above right] at ({obj.id}) {{{obj.label or obj.id}}};")
+    for point in layout.points.values():
+        x, y = _tikz_point(point, layout)
+        lines.append(f"  \\coordinate ({point.id}) at ({x:g},{y:g});")
+    for segment in layout.segments:
+        style = "[dashed]" if segment.style == "dashed" else ""
+        lines.append(f"  \\draw{style} ({segment.start})--({segment.end});")
+    for label in layout.labels:
+        lines.append(f"  \\node[above right] at ({label.target}) {{{label.text}}};")
     lines.append(r"\end{tikzpicture}")
     return "\n".join(lines)
+
+
+def _tikz_point(point: LayoutPoint, layout: LayoutScene) -> tuple[float, float]:
+    return point.x / 40, (layout.height - point.y) / 40
