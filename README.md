@@ -15,6 +15,7 @@ uv run mypy src
 uv run python scripts/export_schema.py
 uv run python scripts/export_schema.py --check
 uv run python scripts/run_benchmarks.py
+uv run python scripts/verify.py
 uv run uvicorn gir_api.main:app --reload
 ```
 
@@ -24,6 +25,7 @@ uv run uvicorn gir_api.main:app --reload
 make help
 make sync
 make check
+make verify
 make schema-check
 make api
 make validate BENCHMARK_GIR=benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
@@ -60,6 +62,16 @@ gir render-svg benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir render-tikz benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir benchmark
 gir export-schema
+```
+
+## Continuous Integration
+
+CI runs on `push` and `pull_request` using GitHub Actions. For the same local verification path, run:
+
+```bash
+make verify
+# or
+uv run python scripts/verify.py
 ```
 
 ## MVP
