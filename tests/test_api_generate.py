@@ -5,7 +5,7 @@ from gir_api.main import app
 
 @pytest.fixture
 def client() -> object:
-    pytest.importorskip("httpx2")
+    pytest.importorskip("httpx")
     from fastapi.testclient import TestClient
 
     return TestClient(app)
