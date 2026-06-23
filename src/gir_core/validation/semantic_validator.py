@@ -50,13 +50,17 @@ def validate_scene(scene: GirScene) -> ValidationReport:
         path = f"objects[{index}]"
         if isinstance(obj, TriangleObject):
             _require_points(obj.vertices, point_ids, f"{path}.vertices", issues)
+            _require_distinct_refs(obj.vertices, f"{path}.vertices", issues)
         elif isinstance(obj, (SegmentObject, LineObject)):
             _require_points(obj.points, point_ids, f"{path}.points", issues)
+            _require_distinct_refs(obj.points, f"{path}.points", issues)
         elif isinstance(obj, RayObject):
             _require_point(obj.start, point_ids, f"{path}.start", issues)
             _require_point(obj.through, point_ids, f"{path}.through", issues)
+            _require_distinct_refs((obj.start, obj.through), path, issues)
         elif isinstance(obj, AngleObject):
             _require_points(obj.points, point_ids, f"{path}.points", issues)
+            _require_distinct_refs(obj.points, f"{path}.points", issues)
         elif isinstance(obj, LabelObject):
             _require_object(obj.target, object_id_set, f"{path}.target", issues)
         elif isinstance(obj, CircleObject):
@@ -75,6 +79,7 @@ def validate_scene(scene: GirScene) -> ValidationReport:
             _require_constraint_target_types(
                 constraint.id, constraint.points, object_types, {"point"}, f"{path}.points", issues
             )
+            _require_distinct_refs(constraint.points, f"{path}.points", issues)
         elif isinstance(constraint, (PerpendicularConstraint, ParallelConstraint)):
             _require_constraint_target_types(
                 constraint.id,
@@ -126,7 +131,14 @@ def validate_scene(scene: GirScene) -> ValidationReport:
                 f"{path}.from_point",
                 issues,
             )
-            _require_object(constraint.to_object, object_id_set, f"{path}.to_object", issues)
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.to_object,
+                object_types,
+                _LINE_LIKE_TYPES,
+                f"{path}.to_object",
+                issues,
+            )
             _require_constraint_target_type(
                 constraint.id, constraint.foot, object_types, {"point"}, f"{path}.foot", issues
             )
@@ -147,7 +159,14 @@ def validate_scene(scene: GirScene) -> ValidationReport:
                 f"{path}.from_point",
                 issues,
             )
-            _require_object(constraint.to_object, object_id_set, f"{path}.to_object", issues)
+            _require_constraint_target_type(
+                constraint.id,
+                constraint.to_object,
+                object_types,
+                {"segment"},
+                f"{path}.to_object",
+                issues,
+            )
             _require_constraint_target_type(
                 constraint.id,
                 constraint.midpoint,
@@ -259,6 +278,22 @@ def _duplicates(values: list[str], code: str, kind: str, issues: list[Validation
     for value, count in Counter(values).items():
         if count > 1:
             issues.append(ValidationIssue(code=code, message=f"Duplicate {kind} id '{value}'."))
+
+
+def _require_distinct_refs(
+    refs: Iterable[str],
+    path: str,
+    issues: list[ValidationIssue],
+) -> None:
+    ref_list = list(refs)
+    if len(set(ref_list)) != len(ref_list):
+        issues.append(
+            ValidationIssue(
+                code="duplicate_role_reference",
+                message="Object or constraint role references must be distinct.",
+                path=path,
+            )
+        )
 
 
 def _require_point(ref: str, point_ids: set[str], path: str, issues: list[ValidationIssue]) -> None:
