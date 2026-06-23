@@ -1,0 +1,19 @@
+{
+  "type": "tikz",
+  "must_contain": [
+    "\\begin{tikzpicture}",
+    "\\end{tikzpicture}",
+    "\\draw",
+    "A",
+    "B",
+    "C",
+    "H"
+  ],
+  "must_not_contain": [
+    "Traceback",
+    "None"
+  ],
+  "min_occurrences": {
+    "\\draw": 4
+  }
+}

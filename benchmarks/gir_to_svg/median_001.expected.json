@@ -1,0 +1,18 @@
+{
+  "type": "svg",
+  "must_contain": [
+    "<svg",
+    "</svg>",
+    "A",
+    "B",
+    "C",
+    "M"
+  ],
+  "must_not_contain": [
+    "Traceback",
+    "None"
+  ],
+  "min_occurrences": {
+    "<line": 4
+  }
+}

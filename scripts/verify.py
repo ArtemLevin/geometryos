@@ -1,40 +1,55 @@
-import os
-import subprocess
-import sys
-from collections.abc import Mapping, Sequence
+from __future__ import annotations
 
-VERIFY_COMMANDS: tuple[tuple[str, ...], ...] = (
-    ("ruff", "check", "."),
-    ("ruff", "format", "--check", "."),
-    ("mypy", "src"),
-    ("pytest",),
-    (sys.executable, "scripts/export_schema.py"),
-    (sys.executable, "scripts/run_benchmarks.py"),
-)
+import subprocess
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Check:
+    name: str
+    command: list[str]
+
+
+CHECKS: list[Check] = [
+    Check("ruff", ["uv", "run", "ruff", "check", "."]),
+    Check("format", ["uv", "run", "ruff", "format", "--check", "."]),
+    Check("mypy", ["uv", "run", "mypy", "src"]),
+    Check("pytest", ["uv", "run", "pytest"]),
+    Check("schema", ["uv", "run", "python", "scripts/export_schema.py", "--check"]),
+    Check("benchmarks", ["uv", "run", "python", "scripts/run_benchmarks.py"]),
+    Check("cli benchmark", ["uv", "run", "gir", "benchmark", "--root", "."]),
+    Check(
+        "cli schema check",
+        [
+            "uv",
+            "run",
+            "gir",
+            "export-schema",
+            "--check",
+            "--output",
+            "schemas/gir.schema.json",
+        ],
+    ),
+]
+
+
+def run_check(check: Check) -> int:
+    print(f"\n==> {check.name}", flush=True)
+    print("$ " + " ".join(check.command), flush=True)
+    result = subprocess.run(check.command, check=False)
+    if result.returncode != 0:
+        print(f"\nFAILED: {check.name} exited with code {result.returncode}", flush=True)
+    return result.returncode
 
 
 def main() -> int:
-    env = _verification_env()
-    for command in VERIFY_COMMANDS:
-        print(f"\n$ {_format_command(command)}", flush=True)
-        completed = subprocess.run(command, check=False, env=env)
-        if completed.returncode != 0:
-            return completed.returncode
+    for check in CHECKS:
+        code = run_check(check)
+        if code != 0:
+            return code
+
+    print("\nAll verification checks passed.", flush=True)
     return 0
-
-
-def _verification_env() -> Mapping[str, str]:
-    env = dict(os.environ)
-    existing_pythonpath = env.get("PYTHONPATH")
-    local_paths = [".", "src"]
-    if existing_pythonpath:
-        local_paths.append(existing_pythonpath)
-    env["PYTHONPATH"] = os.pathsep.join(local_paths)
-    return env
-
-
-def _format_command(command: Sequence[str]) -> str:
-    return " ".join(command)
 
 
 if __name__ == "__main__":

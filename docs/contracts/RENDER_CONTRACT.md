@@ -1,25 +1,42 @@
 # Render Contract
 
 ## Purpose
-Define the contract for Render Contract.
+Define the rendering boundary for GeometryOS outputs.
+Renderers are deterministic sinks: they draw already validated geometry and never
+interpret user text, call AI, or repair invalid mathematics.
 
 ## Input
-JSON-compatible data exchanged between GIR layers.
+Public `GirScene` render entrypoints accept semantic-valid GIR only. They must
+run semantic validation before layout so direct library callers cannot bypass the
+validation gate.
+
+Low-level layout renderers accept `LayoutScene` and assume the caller already
+built a valid layout from a validated scene.
 
 ## Output
-Validated data or a structured error/report.
+Renderers return deterministic text output:
+
+- SVG renderer returns an SVG string.
+- TikZ renderer returns a TikZ picture string.
 
 ## Invariants
 - GIR is the source of truth.
-- Layers do not bypass validation.
 - Renderers never call AI.
+- Renderers do not invent missing objects or fix invalid geometry.
+- Semantic-invalid `GirScene` input is rejected before layout/render.
+- `LayoutScene` render functions only serialize the provided layout.
 
 ## Failure modes
-- Invalid schema.
-- Missing references.
-- Ambiguous user intent.
+- Pydantic schema parsing can fail before a renderer is called.
+- Semantic validation failure rejects public `GirScene` render calls.
+- Invalid or inconsistent `LayoutScene` may fail during layout serialization.
 
-## Minimal JSON example
-```json
-{"version":"0.1","scene_type":"2d","objects":[],"constraints":[],"construction_steps":[]}
+## Minimal example
+```python
+from gir_core.validation.semantic_validator import validate_scene
+from gir_render.svg_renderer import render_svg
+
+report = validate_scene(scene)
+assert report.is_valid
+svg = render_svg(scene)
 ```

@@ -9,7 +9,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8000
 
 .PHONY: help sync install test lint format format-check typecheck schema schema-check benchmarks verify check api \
-	validate render-svg render-tikz cli-benchmark cli-export-schema clean py-compile
+	validate render-svg render-tikz cli-benchmark cli-export-schema cli-schema-check clean py-compile
 
 help: ## Show available Make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "GIR developer commands:\n\n"} /^[a-zA-Z0-9_-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -40,7 +40,7 @@ schema: ## Export GIR JSON Schema to schemas/gir.schema.json.
 schema-check: ## Check that committed GIR JSON Schema is up to date.
 	$(UV_RUN) $(PYTHON) scripts/export_schema.py --check
 
-benchmarks: ## Run text-to-GIR benchmark checks.
+benchmarks: ## Run all benchmark suites.
 	$(UV_RUN) $(PYTHON) scripts/run_benchmarks.py
 
 verify: ## Run the full local verification script.
@@ -61,10 +61,13 @@ render-tikz: ## Render BENCHMARK_GIR as TikZ via CLI.
 	$(UV_RUN) gir render-tikz $(BENCHMARK_GIR)
 
 cli-benchmark: ## Run benchmarks through the installed CLI entrypoint.
-	$(UV_RUN) gir benchmark
+	$(UV_RUN) gir benchmark --root .
 
 cli-export-schema: ## Export schema through the installed CLI entrypoint.
-	$(UV_RUN) gir export-schema
+	$(UV_RUN) gir export-schema --output schemas/gir.schema.json
+
+cli-schema-check: ## Check schema through the installed CLI entrypoint.
+	$(UV_RUN) gir export-schema --check --output schemas/gir.schema.json
 
 py-compile: ## Syntax-check Python files without importing third-party dependencies.
 	$(PYTHON) -m py_compile $$(find src scripts tests -name '*.py' -not -path '*/.venv/*')
