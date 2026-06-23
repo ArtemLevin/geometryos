@@ -5,6 +5,7 @@ from typer.testing import CliRunner
 from gir_cli.main import app
 
 ROOT = Path(__file__).resolve().parents[1]
+VALID_SCENE = ROOT / "benchmarks" / "text_to_gir" / "altitude" / "altitude_001.expected.gir.json"
 
 
 def test_cli_benchmark_with_root() -> None:
@@ -13,6 +14,30 @@ def test_cli_benchmark_with_root() -> None:
 
     assert result.exit_code == 0
     assert '"failed": 0' in result.output
+
+
+def test_cli_validate_smoke() -> None:
+    runner = CliRunner()
+    result = runner.invoke(app, ["validate", str(VALID_SCENE)])
+
+    assert result.exit_code == 0
+    assert '"is_valid": true' in result.output
+
+
+def test_cli_render_svg_smoke() -> None:
+    runner = CliRunner()
+    result = runner.invoke(app, ["render-svg", str(VALID_SCENE)])
+
+    assert result.exit_code == 0
+    assert "<svg" in result.output
+
+
+def test_cli_render_tikz_smoke() -> None:
+    runner = CliRunner()
+    result = runner.invoke(app, ["render-tikz", str(VALID_SCENE)])
+
+    assert result.exit_code == 0
+    assert "\\begin{tikzpicture}" in result.output
 
 
 def test_cli_benchmark_with_benchmarks_dir() -> None:

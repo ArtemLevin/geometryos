@@ -154,10 +154,10 @@ MVP is reached when all of the following are true.
 - [ ] `uv run ruff check .` passes.
 - [ ] `uv run ruff format --check .` passes.
 - [ ] `uv run mypy src` passes.
-- [ ] `uv run pytest` passes.
-- [ ] `uv run python scripts/verify.py` passes.
+- [ ] `uv run pytest` passes, including API, CLI and import smoke tests.
+- [ ] `uv run python scripts/verify.py` passes as the main local quality gate.
 - [ ] `make verify` passes, if Makefile is available.
-- [ ] CI passes on `main`.
+- [ ] CI runs `uv run python scripts/verify.py` and passes on `main`.
 
 ### Schema
 
@@ -170,6 +170,7 @@ MVP is reached when all of the following are true.
 
 - [ ] `uv run python scripts/run_benchmarks.py` passes.
 - [ ] `uv run gir benchmark --root .` passes.
+- [ ] `uv run gir export-schema --check --output schemas/gir.schema.json` passes.
 - [ ] `text_to_gir` suite has success, ambiguity and error cases.
 - [ ] `gir_to_svg` suite passes.
 - [ ] `gir_to_tikz` suite passes.

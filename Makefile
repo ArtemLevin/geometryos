@@ -40,7 +40,7 @@ schema: ## Export GIR JSON Schema to schemas/gir.schema.json.
 schema-check: ## Check that committed GIR JSON Schema is up to date.
 	$(UV_RUN) $(PYTHON) scripts/export_schema.py --check
 
-benchmarks: ## Run text-to-GIR benchmark checks.
+benchmarks: ## Run all benchmark suites.
 	$(UV_RUN) $(PYTHON) scripts/run_benchmarks.py
 
 verify: ## Run the full local verification script.
