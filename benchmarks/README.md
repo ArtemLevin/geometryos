@@ -55,3 +55,18 @@ Expected JSON supports:
 TikZ render benchmarks use the same format as `gir_to_svg`, but validate the
 public TikZ renderer output. Current render benchmark coverage intentionally
 stays within MVP layout labels `A`, `B`, `C`, `H`, and `M`.
+
+## Canonical MVP layout scope
+
+Render benchmarks exercise the canonical MVP layout strategy. It currently
+supports:
+
+- single-triangle scenes, with triangle vertices placed by vertex order rather
+  than by hardcoded point names;
+- arbitrary triangle labels such as `P`, `Q`, and `R`;
+- midpoint constraints;
+- median constraints via their midpoint;
+- altitude foot projection onto the target segment.
+
+This is not a general constraint solver: there is no collision avoidance,
+multi-triangle layout, full circle layout, or general ray/angle rendering yet.
