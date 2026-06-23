@@ -53,8 +53,9 @@ Expected JSON supports:
 ## gir_to_tikz
 
 TikZ render benchmarks use the same format as `gir_to_svg`, but validate the
-public TikZ renderer output. Current render benchmark coverage intentionally
-stays within MVP layout labels `A`, `B`, `C`, `H`, and `M`.
+public TikZ renderer output. Render benchmark coverage includes canonical MVP
+labels `A`, `B`, `C`, `H`, `M` and arbitrary triangle labels such as `P`, `Q`,
+and `R`.
 
 ## Canonical MVP layout scope
 
