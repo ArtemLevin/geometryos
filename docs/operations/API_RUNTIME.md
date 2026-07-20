@@ -31,7 +31,7 @@ uv run uvicorn gir_api.main:app --reload
 
 Every HTTP response contains `X-Request-ID`. A caller-provided value is reused only when it matches `^[A-Za-z0-9._-]{1,128}$`; otherwise GeometryOS generates a UUID. The same identifier appears in v1 Problem Details and structured server logs.
 
-The header is additive across health, stable v1, legacy compatibility and error responses; it does not alter existing JSON success bodies.
+The header is additive across health, readiness, stable v1, legacy compatibility and error responses; it does not alter existing JSON success bodies.
 
 Request and operation identifiers are stored in `ContextVar` instances and reset after every request. Parallel requests therefore retain isolated context.
 
@@ -93,6 +93,21 @@ The `geometryos.api` logger emits one JSON `request_completed` event per request
 
 Internal exceptions produce a separate `internal_error` event with the exception type. At `DEBUG`, sanitized stack-frame metadata may be included, but exception messages and request data remain excluded.
 
+## Lifecycle and probes
+
+FastAPI lifespan owns a per-application lifecycle state:
+
+```text
+starting → ready → stopping
+             ↘ failed
+```
+
+`GET /health` is unconditional liveness and returns HTTP 200 whenever the process can serve HTTP. `GET /ready` returns HTTP 200 only while lifecycle, settings and executor checks pass; otherwise it returns HTTP 503 with `status: not_ready`.
+
+Readiness checks are local and side-effect-free. They do not invoke the application pipeline, renderers, worker threads, filesystem or network.
+
+The production container uses `/ready` as its Docker healthcheck. See `docs/operations/DEPLOYMENT.md` for image, Compose and graceful-shutdown details.
+
 ## Deferred production controls
 
-This runtime layer does not add readiness checks, containers, process lifecycle management, reverse-proxy limits, authentication, rate limiting, Prometheus or OpenTelemetry. Those concerns remain separate from the stable API resilience contract.
+The current deployment does not add reverse-proxy request-byte limits, TLS, authentication, rate limiting, Prometheus, OpenTelemetry, distributed tracing, Kubernetes resources or image publication. These concerns remain separate from the stable runtime and deployment contracts.

@@ -4,6 +4,7 @@ from enum import StrEnum
 
 class ApiOperation(StrEnum):
     HEALTH = "health"
+    READY = "ready"
     GENERATE = "generate"
     VALIDATE_GIR = "validate_gir"
     RENDER_SVG = "render_svg"
@@ -32,6 +33,7 @@ def get_operation() -> ApiOperation:
 def resolve_operation(path: str) -> ApiOperation:
     path_map = {
         "/health": ApiOperation.HEALTH,
+        "/ready": ApiOperation.READY,
         "/api/v1/generate": ApiOperation.GENERATE,
         "/generate": ApiOperation.GENERATE,
         "/api/v1/validate-gir": ApiOperation.VALIDATE_GIR,

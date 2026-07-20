@@ -27,6 +27,7 @@ def test_openapi_contains_only_stable_api_paths() -> None:
     assert schema["info"]["version"] == API_V1_VERSION
     assert set(paths) == {
         "/health",
+        "/ready",
         "/api/v1/generate",
         "/api/v1/validate-gir",
         "/api/v1/render/svg",
@@ -45,12 +46,25 @@ def test_openapi_operation_ids_are_explicit_and_unique() -> None:
 
     assert set(operation_ids) == {
         "geometryos_health",
+        "geometryos_ready",
         "geometryos_v1_generate",
         "geometryos_v1_validate_gir",
         "geometryos_v1_render_svg",
         "geometryos_v1_render_tikz",
     }
     assert len(operation_ids) == len(set(operation_ids))
+
+
+def test_openapi_publishes_readiness_success_and_failure_models() -> None:
+    schema = app.openapi()
+    responses = schema["paths"]["/ready"]["get"]["responses"]
+
+    assert "application/json" in responses["200"]["content"]
+    assert "application/json" in responses["503"]["content"]
+    success_schema = responses["200"]["content"]["application/json"]["schema"]
+    failure_schema = responses["503"]["content"]["application/json"]["schema"]
+    assert _resolve_schema(success_schema, schema)["title"] == "ReadinessResponse"
+    assert _resolve_schema(failure_schema, schema)["title"] == "ReadinessResponse"
 
 
 def test_openapi_generate_request_constraints_are_published() -> None:

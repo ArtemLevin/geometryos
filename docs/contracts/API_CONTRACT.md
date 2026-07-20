@@ -23,6 +23,7 @@ POST /api/v1/validate-gir
 POST /api/v1/render/svg
 POST /api/v1/render/tikz
 GET  /health
+GET  /ready
 ```
 
 Unversioned routes remain temporary compatibility aliases. They are operational but excluded from OpenAPI and are not part of the TutorBoard consumer contract.
@@ -106,6 +107,7 @@ Semantic-invalid and structural-invalid render input returns HTTP 422.
 
 ```text
 geometryos_health
+geometryos_ready
 geometryos_v1_generate
 geometryos_v1_validate_gir
 geometryos_v1_render_svg
@@ -125,8 +127,35 @@ Operation IDs are explicit and stable so future TutorBoard clients can be genera
 | Invalid request or structural GIR | 422 |
 | Semantic-invalid GIR sent to render | 422 |
 | Unsupported GIR schema version | 422 |
+| Service process alive and application ready | 200 |
+| Service process alive but application not ready | 503 |
 
-Timeouts, request-size middleware, readiness failures, request IDs and stable internal-error payloads are intentionally deferred to the resilience PR.
+## Operational probes
+
+`GET /health` is the liveness contract. It returns HTTP 200 with exactly:
+
+```json
+{"status": "ok"}
+```
+
+Liveness indicates that the process and event loop can answer HTTP. It intentionally remains successful while readiness is stopping or degraded.
+
+`GET /ready` is the readiness contract. It returns HTTP 200 only after FastAPI startup and while the lifecycle, validated settings and application executor checks pass:
+
+```json
+{
+  "status": "ready",
+  "checks": [
+    {"name": "lifecycle", "status": "pass"},
+    {"name": "settings", "status": "pass"},
+    {"name": "executor", "status": "pass"}
+  ]
+}
+```
+
+During startup, shutdown, lifecycle failure or missing runtime state, it returns HTTP 503 with the same schema and `status: "not_ready"`. Readiness responses carry `Cache-Control: no-store`. Both probes receive the additive `X-Request-ID` header.
+
+Readiness is side-effect-free: it does not execute generation, validation, normalization or rendering and does not contact external systems.
 
 ## Legacy aliases
 
