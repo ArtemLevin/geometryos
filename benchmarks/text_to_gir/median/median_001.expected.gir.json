@@ -1,1 +1,107 @@
-{"version":"0.1","scene_type":"2d","objects":[{"id":"A","type":"point","label":"A"},{"id":"B","type":"point","label":"B"},{"id":"C","type":"point","label":"C"},{"id":"BC","type":"segment","points":["B","C"]},{"id":"ABC","type":"triangle","vertices":["A","B","C"]},{"id":"M","type":"point","label":"M"},{"id":"AM","type":"segment","points":["A","M"]}],"constraints":[{"id":"c_noncol_abc","type":"non_collinear","points":["A","B","C"]},{"id":"c_mid_m_bc","type":"midpoint","point":"M","object":"BC"},{"id":"c_median_a_bc","type":"median","from_point":"A","to_object":"BC","midpoint":"M","segment":"AM"}],"construction_steps":[{"id":"s1","action":"create_triangle","objects":["A","B","C","BC","ABC"],"constraints":["c_noncol_abc"]},{"id":"s2","action":"draw_median","objects":["M","AM"],"constraints":["c_mid_m_bc","c_median_a_bc"]}],"metadata":{"source":"benchmark"}}
+{
+  "schema_version": "0.2.0",
+  "scene_type": "2d",
+  "objects": [
+    {
+      "id": "A",
+      "type": "point",
+      "label": "A"
+    },
+    {
+      "id": "B",
+      "type": "point",
+      "label": "B"
+    },
+    {
+      "id": "C",
+      "type": "point",
+      "label": "C"
+    },
+    {
+      "id": "BC",
+      "type": "segment",
+      "points": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "ABC",
+      "type": "triangle",
+      "vertices": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "M",
+      "type": "point",
+      "label": "M"
+    },
+    {
+      "id": "AM",
+      "type": "segment",
+      "points": [
+        "A",
+        "M"
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "id": "c_noncol_abc",
+      "type": "non_collinear",
+      "points": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "c_mid_m_bc",
+      "type": "midpoint",
+      "point": "M",
+      "object": "BC"
+    },
+    {
+      "id": "c_median_a_bc",
+      "type": "median",
+      "from_point": "A",
+      "to_object": "BC",
+      "midpoint": "M",
+      "segment": "AM"
+    }
+  ],
+  "construction_steps": [
+    {
+      "id": "s1",
+      "action": "create_triangle",
+      "objects": [
+        "A",
+        "B",
+        "C",
+        "BC",
+        "ABC"
+      ],
+      "constraints": [
+        "c_noncol_abc"
+      ]
+    },
+    {
+      "id": "s2",
+      "action": "draw_median",
+      "objects": [
+        "M",
+        "AM"
+      ],
+      "constraints": [
+        "c_mid_m_bc",
+        "c_median_a_bc"
+      ]
+    }
+  ],
+  "metadata": {
+    "source": "benchmark"
+  }
+}

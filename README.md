@@ -57,11 +57,11 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy src
 uv run pytest
-uv run python scripts/export_schema.py --output schemas/gir.schema.json
-uv run python scripts/export_schema.py --check --output schemas/gir.schema.json
+uv run python scripts/export_schema.py --output schemas/gir-0.2.schema.json
+uv run python scripts/export_schema.py --check --output schemas/gir-0.2.schema.json
 uv run python scripts/run_benchmarks.py
 uv run gir benchmark --root .
-uv run gir export-schema --check --output schemas/gir.schema.json
+uv run gir export-schema --check --output schemas/gir-0.2.schema.json
 uv run python scripts/verify.py
 ```
 
@@ -158,8 +158,8 @@ gir render-svg benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir render-tikz benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir benchmark --root .
 gir benchmark --benchmarks-dir benchmarks/text_to_gir
-gir export-schema --output schemas/gir.schema.json
-gir export-schema --check --output schemas/gir.schema.json
+gir export-schema --output schemas/gir-0.2.schema.json
+gir export-schema --check --output schemas/gir-0.2.schema.json
 ```
 
 By default, `gir benchmark` uses the current working directory as the project root.

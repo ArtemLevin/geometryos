@@ -44,7 +44,7 @@ def _angle_bisector_layout() -> LayoutScene:
 
 def _pqr_triangle_scene() -> GirScene:
     return GirScene(
-        version="0.1",
+        schema_version="0.2.0",
         scene_type="2d",
         objects=[
             PointObject(id="P", type="point", label="P"),

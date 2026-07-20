@@ -162,15 +162,15 @@ MVP is reached when all of the following are true.
 ### Schema
 
 - [ ] `uv run python scripts/export_schema.py --check` passes.
-- [ ] `uv run gir export-schema --check --output schemas/gir.schema.json` passes.
-- [ ] `schemas/gir.schema.json` contains real `$defs` generated from the Pydantic models.
+- [ ] `uv run gir export-schema --check --output schemas/gir-0.2.schema.json` passes.
+- [ ] `schemas/gir-0.2.schema.json` contains real `$defs` generated from the Pydantic models.
 - [ ] Schema freshness is tested in CI or verifier scripts.
 
 ### Benchmarks
 
 - [ ] `uv run python scripts/run_benchmarks.py` passes.
 - [ ] `uv run gir benchmark --root .` passes.
-- [ ] `uv run gir export-schema --check --output schemas/gir.schema.json` passes.
+- [ ] `uv run gir export-schema --check --output schemas/gir-0.2.schema.json` passes.
 - [ ] `text_to_gir` suite has success, ambiguity and error cases.
 - [ ] `gir_to_svg` suite passes.
 - [ ] `gir_to_tikz` suite passes.
@@ -194,7 +194,7 @@ MVP is reached when all of the following are true.
 - [ ] `gir render-tikz path/to/scene.gir.json` works.
 - [ ] `gir benchmark --root .` works.
 - [ ] `gir benchmark --benchmarks-dir benchmarks/text_to_gir` works.
-- [ ] `gir export-schema --check --output schemas/gir.schema.json` works.
+- [ ] `gir export-schema --check --output schemas/gir-0.2.schema.json` works.
 
 ## 8. Benchmark Targets
 
@@ -269,7 +269,7 @@ gir render-svg path/to/scene.gir.json
 gir render-tikz path/to/scene.gir.json
 gir benchmark --root .
 gir benchmark --benchmarks-dir benchmarks/text_to_gir
-gir export-schema --check --output schemas/gir.schema.json
+gir export-schema --check --output schemas/gir-0.2.schema.json
 ```
 
 CLI commands must not rely on hidden repository-root magic when explicit `--root`, `--benchmarks-dir` or `--output` options are available.

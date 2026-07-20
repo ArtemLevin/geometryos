@@ -919,6 +919,7 @@
       "type": "object"
     }
   },
+  "$id": "urn:geometryos:gir:0.2.0",
   "additionalProperties": false,
   "properties": {
     "constraints": {
@@ -1048,18 +1049,20 @@
       "title": "Scene Type",
       "type": "string"
     },
-    "version": {
-      "title": "Version",
+    "schema_version": {
+      "const": "0.2.0",
+      "title": "Schema Version",
       "type": "string"
     }
   },
   "required": [
-    "version",
+    "schema_version",
     "scene_type",
     "objects",
     "constraints",
     "construction_steps"
   ],
   "title": "GirScene",
-  "type": "object"
+  "type": "object",
+  "x-gir-schema-version": "0.2.0"
 }

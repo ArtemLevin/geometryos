@@ -38,7 +38,7 @@ def test_verify_cli_smoke_uses_explicit_paths() -> None:
         "export-schema",
         "--check",
         "--output",
-        "schemas/gir.schema.json",
+        "schemas/gir-0.2.schema.json",
     ]
 
 

@@ -9,7 +9,7 @@ if str(SRC) not in sys.path:
 
 from gir_core.schema import check_gir_schema, write_gir_schema  # noqa: E402
 
-SCHEMA_PATH = ROOT / "schemas" / "gir.schema.json"
+SCHEMA_PATH = ROOT / "schemas" / "gir-0.2.schema.json"
 
 
 def export_schema(output: Path = SCHEMA_PATH) -> Path:

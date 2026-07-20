@@ -1,0 +1,8 @@
+from typing import Final
+
+GIR_SCHEMA_VERSION: Final = "0.2.0"
+LEGACY_GIR_VERSION: Final = "0.1"
+GIR_SCHEMA_ID: Final = f"urn:geometryos:gir:{GIR_SCHEMA_VERSION}"
+
+SUPPORTED_CANONICAL_VERSIONS: Final = frozenset({GIR_SCHEMA_VERSION})
+SUPPORTED_LEGACY_VERSIONS: Final = frozenset({LEGACY_GIR_VERSION})

@@ -283,7 +283,7 @@ version / scene_type / objects / constraints / construction_steps / metadata с�
 Проверь:
 
 ```text
-schemas/gir.schema.json актуальна?
+schemas/gir-0.2.schema.json актуальна?
 она сгенерирована из Pydantic-моделей?
 есть ли проверка committed schema == generated schema?
 есть ли $defs для objects и constraints?

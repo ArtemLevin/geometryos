@@ -159,7 +159,7 @@ def test_altitude_target_must_be_line_like() -> None:
 
 def test_median_target_must_be_segment() -> None:
     data = {
-        "version": "0.1",
+        "schema_version": "0.2.0",
         "scene_type": "2d",
         "objects": [
             {"id": "A", "type": "point", "label": "A"},
@@ -191,7 +191,7 @@ def test_median_target_must_be_segment() -> None:
 
 def test_median_midpoint_and_segment_types_are_checked() -> None:
     data = {
-        "version": "0.1",
+        "schema_version": "0.2.0",
         "scene_type": "2d",
         "objects": [
             {"id": "A", "type": "point", "label": "A"},

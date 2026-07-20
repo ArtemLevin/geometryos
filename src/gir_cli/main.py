@@ -62,7 +62,7 @@ def benchmark(
 def export_schema_command(
     output: Annotated[
         Path, typer.Option("--output", "-o", help="Output path for generated GIR JSON Schema.")
-    ] = Path("schemas/gir.schema.json"),
+    ] = Path("schemas/gir-0.2.schema.json"),
     check: Annotated[
         bool, typer.Option("--check", help="Check that the committed schema is up to date.")
     ] = False,

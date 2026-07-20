@@ -1,18 +1,69 @@
 {
-  "version": "0.1",
+  "schema_version": "0.2.0",
   "scene_type": "2d",
   "objects": [
-    {"id": "P", "type": "point", "label": "P"},
-    {"id": "Q", "type": "point", "label": "Q"},
-    {"id": "R", "type": "point", "label": "R"},
-    {"id": "PQ", "type": "segment", "points": ["P", "Q"]},
-    {"id": "QR", "type": "segment", "points": ["Q", "R"]},
-    {"id": "RP", "type": "segment", "points": ["R", "P"]},
-    {"id": "PQR", "type": "triangle", "vertices": ["P", "Q", "R"]}
+    {
+      "id": "P",
+      "type": "point",
+      "label": "P"
+    },
+    {
+      "id": "Q",
+      "type": "point",
+      "label": "Q"
+    },
+    {
+      "id": "R",
+      "type": "point",
+      "label": "R"
+    },
+    {
+      "id": "PQ",
+      "type": "segment",
+      "points": [
+        "P",
+        "Q"
+      ]
+    },
+    {
+      "id": "QR",
+      "type": "segment",
+      "points": [
+        "Q",
+        "R"
+      ]
+    },
+    {
+      "id": "RP",
+      "type": "segment",
+      "points": [
+        "R",
+        "P"
+      ]
+    },
+    {
+      "id": "PQR",
+      "type": "triangle",
+      "vertices": [
+        "P",
+        "Q",
+        "R"
+      ]
+    }
   ],
   "constraints": [
-    {"id": "non_collinear_PQR", "type": "non_collinear", "points": ["P", "Q", "R"]}
+    {
+      "id": "non_collinear_PQR",
+      "type": "non_collinear",
+      "points": [
+        "P",
+        "Q",
+        "R"
+      ]
+    }
   ],
   "construction_steps": [],
-  "metadata": {"source": "render_benchmark"}
+  "metadata": {
+    "source": "render_benchmark"
+  }
 }
