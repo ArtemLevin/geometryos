@@ -39,13 +39,22 @@ jobs:
 
       - name: Generate npm lock
         working-directory: contracts/tutorboard/typescript
-        run: npm install --package-lock-only --ignore-scripts
+        run: |
+          set -o pipefail
+          npm install --package-lock-only --ignore-scripts 2>&1 | tee npm-lock.log
+
+      - name: Upload npm diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr7-npm-lock-log
+          path: contracts/tutorboard/typescript/npm-lock.log
 
       - name: Format Python
         run: uv run ruff format .
 
       - name: Remove temporary automation
-        run: rm -f .github/pr7-trigger .github/workflows/pr7-apply.yml
+        run: rm -f .github/pr7-trigger .github/workflows/pr7-apply.yml contracts/tutorboard/typescript/npm-lock.log
 
       - name: Commit generated contract baseline
         run: |
