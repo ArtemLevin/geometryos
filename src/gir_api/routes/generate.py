@@ -51,3 +51,10 @@ def generate_legacy(request: LegacyGenerateRequest) -> LegacyGenerateResponse:
         )
     )
     return present_generate_legacy(result)
+
+
+# Source-level aliases preserve pre-v1 imports for current Python consumers and tests.
+GenerateRequest = LegacyGenerateRequest
+GenerateResponse = LegacyGenerateResponse
+generate = generate_legacy
+router = legacy_router
