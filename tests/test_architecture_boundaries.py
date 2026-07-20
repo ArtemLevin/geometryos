@@ -38,6 +38,14 @@ def test_api_routes_do_not_orchestrate_geometry_implementations() -> None:
         _assert_no_forbidden_imports(path, forbidden)
 
 
+def test_api_contract_models_and_presenters_are_transport_agnostic() -> None:
+    for filename in ("models.py", "presenters.py"):
+        _assert_no_forbidden_imports(
+            ROOT / "src/gir_api" / filename,
+            ("fastapi", "starlette"),
+        )
+
+
 def test_cli_does_not_orchestrate_geometry_implementations() -> None:
     _assert_no_forbidden_imports(
         ROOT / "src/gir_cli/main.py",
