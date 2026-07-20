@@ -9,6 +9,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 
+from gir_api.openapi_examples import READINESS_RESPONSE_EXAMPLE
+
 _REQUIRED_EXECUTOR_METHODS = ("generate", "validate", "render_svg", "render_tikz")
 
 
@@ -32,7 +34,10 @@ class ReadinessCheck(BaseModel):
 
 
 class ReadinessResponse(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [READINESS_RESPONSE_EXAMPLE]},
+    )
 
     status: Literal["ready", "not_ready"]
     checks: list[ReadinessCheck]
