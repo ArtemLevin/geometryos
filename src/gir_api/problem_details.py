@@ -83,7 +83,7 @@ def problem_responses(*statuses: int) -> dict[int | str, dict[str, Any]]:
         500: "Unexpected internal error.",
         504: "Operation exceeded its configured time limit.",
     }
-    schema = ProblemDetail.model_json_schema()
+    schema = {"$ref": "#/components/schemas/ProblemDetail"}
     return {
         status: {
             "description": descriptions[status],
