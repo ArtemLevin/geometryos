@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal, cast
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -36,7 +36,9 @@ class ReadinessCheck(BaseModel):
 class ReadinessResponse(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
-        json_schema_extra={"examples": [READINESS_RESPONSE_EXAMPLE]},
+        json_schema_extra={
+            "examples": [cast(dict[str, Any], READINESS_RESPONSE_EXAMPLE)]
+        },
     )
 
     status: Literal["ready", "not_ready"]
