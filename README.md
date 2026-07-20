@@ -4,7 +4,17 @@ GIR is a Python-first geometry compiler skeleton. Text is converted into draft G
 
 ## Architecture
 
-`gir_core` contains pure Pydantic models, normalization and semantic validation. It has no FastAPI, renderer, database, Docker, frontend, OpenAI or Ollama dependency. `gir_ai` creates draft GIR only. `gir_render` draws already-valid GIR. `gir_api` and `gir_cli` expose the same pipeline.
+`gir_core` contains pure Pydantic models, normalization and semantic validation. It has no FastAPI, renderer, database, Docker, frontend, OpenAI or Ollama dependency. `gir_ai` creates draft GIR only. `gir_render` draws already-valid GIR. `gir_application` owns the canonical orchestration pipeline, while `gir_api` and `gir_cli` are transport adapters over that application layer.
+
+## Canonical application pipeline
+
+GeometryOS exposes one transport-agnostic workflow:
+
+```text
+text → draft GIR → validate → normalize → validate → SVG/TikZ
+```
+
+The supported Python entry points are `generate_geometry`, `validate_geometry`, `prepare_geometry` and `render_geometry`. API routes and CLI commands do not assemble the geometry pipeline themselves. See `docs/APPLICATION_PIPELINE.md` and `docs/adr/ADR-002-canonical-application-pipeline.md`.
 
 ## Requirements
 
@@ -187,4 +197,4 @@ Both jobs use Python 3.11, frozen dependency installation, read-only repository 
 
 ## MVP
 
-The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, canonical single-triangle layout, SVG/TikZ renderers, API/CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, Docker, OpenCV, SymPy or multi-user features.
+The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, API/CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, Docker, OpenCV, SymPy or multi-user features.
