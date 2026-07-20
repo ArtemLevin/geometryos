@@ -1,0 +1,52 @@
+name: Apply PR 3 migration
+
+on:
+  push:
+    branches:
+      - integration/03-canonical-application-pipeline
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/03-canonical-application-pipeline
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install locked dependencies
+        run: uv sync --frozen --dev
+
+      - name: Apply migration
+        run: uv run python scripts/apply_pr3.py
+
+      - name: Format and fix imports
+        run: |
+          uv run ruff check --fix .
+          uv run ruff format .
+
+      - name: Remove one-shot migration files
+        run: |
+          rm scripts/apply_pr3.py
+          rm .github/workflows/apply-pr3.yml
+
+      - name: Commit migration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: introduce canonical GeometryOS application pipeline"
+          git push origin HEAD:integration/03-canonical-application-pipeline
