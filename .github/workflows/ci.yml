@@ -114,16 +114,7 @@ jobs:
         run: npm run --prefix contracts/tutorboard/typescript generate
 
       - name: Type-check TutorBoard smoke client
-        run: |
-          set -o pipefail
-          npm run --prefix contracts/tutorboard/typescript typecheck 2>&1 | tee typescript-typecheck.log
-
-      - name: Upload TypeScript typecheck log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr7-typescript-typecheck-log
-          path: typescript-typecheck.log
+        run: npm run --prefix contracts/tutorboard/typescript typecheck
 
   container-smoke:
     needs:
