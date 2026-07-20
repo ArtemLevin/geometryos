@@ -33,6 +33,8 @@ def test_api_routes_do_not_orchestrate_geometry_implementations() -> None:
         "gir_core.validation.semantic_validator",
         "gir_render.svg_renderer",
         "gir_render.tikz_renderer",
+        "anyio",
+        "pydantic_settings",
     )
     for path in (ROOT / "src/gir_api/routes").glob("*.py"):
         _assert_no_forbidden_imports(path, forbidden)
@@ -60,12 +62,42 @@ def test_cli_does_not_orchestrate_geometry_implementations() -> None:
 
 def test_application_layer_is_transport_agnostic() -> None:
     for path in (ROOT / "src/gir_application").glob("*.py"):
-        _assert_no_forbidden_imports(path, ("fastapi", "typer", "gir_api", "gir_cli"))
+        _assert_no_forbidden_imports(
+            path,
+            ("fastapi", "typer", "gir_api", "gir_cli", "anyio", "pydantic_settings"),
+        )
 
 
 def test_core_does_not_depend_on_outer_layers() -> None:
     for path in (ROOT / "src/gir_core").rglob("*.py"):
         _assert_no_forbidden_imports(
             path,
-            ("gir_application", "gir_api", "gir_cli", "gir_ai", "gir_render"),
+            (
+                "gir_application",
+                "gir_api",
+                "gir_cli",
+                "gir_ai",
+                "gir_render",
+                "anyio",
+                "pydantic_settings",
+            ),
         )
+
+
+def test_api_runtime_boundaries_do_not_import_geometry_implementations() -> None:
+    forbidden = (
+        "gir_ai",
+        "gir_core.normalize",
+        "gir_core.validation.semantic_validator",
+        "gir_render",
+    )
+    for filename in (
+        "context.py",
+        "errors.py",
+        "exception_handlers.py",
+        "logging.py",
+        "middleware.py",
+        "problem_details.py",
+        "settings.py",
+    ):
+        _assert_no_forbidden_imports(ROOT / "src/gir_api" / filename, forbidden)
