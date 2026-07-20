@@ -16,6 +16,33 @@ text → draft GIR → validate → normalize → validate → SVG/TikZ
 
 The supported Python entry points are `generate_geometry`, `validate_geometry`, `prepare_geometry` and `render_geometry`. API routes and CLI commands do not assemble the geometry pipeline themselves. See `docs/APPLICATION_PIPELINE.md` and `docs/adr/ADR-002-canonical-application-pipeline.md`.
 
+## Stable HTTP API v1
+
+The TutorBoard-facing contract is exposed under `/api/v1`:
+
+```text
+POST /api/v1/generate
+POST /api/v1/validate-gir
+POST /api/v1/render/svg
+POST /api/v1/render/tikz
+GET  /health
+```
+
+Unversioned POST routes remain temporary compatibility aliases and are excluded from OpenAPI. Start the development API with `make api`, then call:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input_type": "text",
+    "input": "Постройте треугольник ABC. Проведите высоту из вершины A к стороне BC.",
+    "output": ["svg"],
+    "mode": "strict"
+  }'
+```
+
+See `docs/contracts/API_CONTRACT.md` and `docs/adr/ADR-003-stable-http-api-v1.md`.
+
 ## Requirements
 
 - Python 3.11 is the canonical local and CI verification version.
@@ -144,6 +171,7 @@ Ambiguous requests are first-class domain responses, not server errors. For exam
 {
   "status": "needs_clarification",
   "confidence": 0.4,
+  "schema_version": "0.2.0",
   "gir": null,
   "validation_report": null,
   "svg": null,
@@ -197,4 +225,4 @@ Both jobs use Python 3.11, frozen dependency installation, read-only repository 
 
 ## MVP
 
-The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, API/CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, Docker, OpenCV, SymPy or multi-user features.
+The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, stable API v1, CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, Docker, OpenCV, SymPy or multi-user features.
