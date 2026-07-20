@@ -1,4 +1,25 @@
-
+# Python bytecode and virtual environments
 __pycache__/
 *.py[cod]
 .venv/
+
+# Test and tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Temporary smoke environments
+.smoke-venv/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

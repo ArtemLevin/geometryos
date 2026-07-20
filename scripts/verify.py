@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
+from time import monotonic
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 @dataclass(frozen=True)
@@ -36,10 +40,19 @@ CHECKS: list[Check] = [
 def run_check(check: Check) -> int:
     print(f"\n==> {check.name}", flush=True)
     print("$ " + " ".join(check.command), flush=True)
-    result = subprocess.run(check.command, check=False)
+    started = monotonic()
+    result = subprocess.run(check.command, cwd=ROOT, check=False)
+    duration = monotonic() - started
+
     if result.returncode != 0:
-        print(f"\nFAILED: {check.name} exited with code {result.returncode}", flush=True)
-    return result.returncode
+        print(
+            f"[FAIL] {check.name} ({duration:.2f}s, exit code {result.returncode})",
+            flush=True,
+        )
+        return result.returncode
+
+    print(f"[PASS] {check.name} ({duration:.2f}s)", flush=True)
+    return 0
 
 
 def main() -> int:

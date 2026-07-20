@@ -8,16 +8,23 @@ BENCHMARK_GIR ?= benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 HOST ?= 127.0.0.1
 PORT ?= 8000
 
-.PHONY: help sync install test lint format format-check typecheck schema schema-check benchmarks verify check api \
-	validate render-svg render-tikz cli-benchmark cli-export-schema cli-schema-check clean py-compile
+.PHONY: help sync install lock lock-upgrade test lint format format-check typecheck schema schema-check \
+	benchmarks verify package-smoke verify-all check api validate render-svg render-tikz cli-benchmark \
+	cli-export-schema cli-schema-check clean py-compile
 
 help: ## Show available Make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "GIR developer commands:\n\n"} /^[a-zA-Z0-9_-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-sync: ## Install runtime and dev dependencies with uv.
-	$(UV) sync --dev
+sync: ## Install locked runtime and dev dependencies with uv.
+	$(UV) sync --frozen --dev
 
 install: sync ## Alias for sync.
+
+lock: ## Resolve dependencies and update uv.lock intentionally.
+	$(UV) lock
+
+lock-upgrade: ## Upgrade dependency versions recorded in uv.lock.
+	$(UV) lock --upgrade
 
 test: ## Run the pytest suite.
 	$(UV_RUN) pytest
@@ -43,10 +50,15 @@ schema-check: ## Check that committed GIR JSON Schema is up to date.
 benchmarks: ## Run all benchmark suites.
 	$(UV_RUN) $(PYTHON) scripts/run_benchmarks.py
 
-verify: ## Run the full local verification script.
+verify: ## Run the canonical source verification gate.
 	$(UV_RUN) $(PYTHON) scripts/verify.py
 
-check: test lint format-check typecheck schema-check benchmarks ## Run all required verification checks.
+package-smoke: ## Build and test the wheel in an isolated environment.
+	$(UV_RUN) $(PYTHON) scripts/package_smoke.py
+
+verify-all: verify package-smoke ## Run source and distribution verification.
+
+check: test lint format-check typecheck schema-check benchmarks ## Run individual source checks.
 
 api: ## Start the FastAPI development server.
 	$(UV_RUN) uvicorn gir_api.main:app --reload --host $(HOST) --port $(PORT)
@@ -73,6 +85,6 @@ py-compile: ## Syntax-check Python files without importing third-party dependenc
 	$(PYTHON) -m py_compile $$(find src scripts tests -name '*.py' -not -path '*/.venv/*')
 
 clean: ## Remove local caches, build outputs, coverage artifacts and virtualenv.
-	rm -rf .pytest_cache .ruff_cache .mypy_cache .coverage htmlcov build dist *.egg-info .venv
+	rm -rf .pytest_cache .ruff_cache .mypy_cache .coverage htmlcov build dist *.egg-info .venv .smoke-venv
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +
 	find . -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
