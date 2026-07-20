@@ -1,20 +1,20 @@
-name: PR 5 apply implementation
+name: PR 5 refresh lock
 
 on:
   push:
     branches:
       - integration/05-api-resilience
     paths:
-      - scripts/apply_pr5.py
+      - pyproject.toml
 
 permissions:
   contents: write
 
 jobs:
-  apply-pr5:
+  refresh-lock:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,21 +28,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Apply API resilience implementation
-        run: python scripts/apply_pr5.py
-
-      - name: Refresh dependency lock
+      - name: Refresh lock file
         run: uv lock
 
-      - name: Remove one-shot migration files
+      - name: Commit lock file
         run: |
-          rm scripts/apply_pr5.py
-          rm .github/workflows/pr5-refresh-lock.yml
-
-      - name: Commit implementation
-        run: |
+          if git diff --quiet -- uv.lock; then
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'feat(api): add resilience timeouts and request context'
+          git add uv.lock
+          git commit -m 'build: refresh lock for API resilience'
           git push
