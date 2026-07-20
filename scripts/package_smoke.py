@@ -66,7 +66,13 @@ def clean_subprocess_env() -> dict[str, str]:
     return env
 
 
-def run_step(name: str, command: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> None:
+def run_step(
+    name: str,
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+) -> None:
     print(f"\n==> {name}", flush=True)
     print("$ " + " ".join(command), flush=True)
     completed = subprocess.run(command, cwd=cwd, env=env, check=False)
