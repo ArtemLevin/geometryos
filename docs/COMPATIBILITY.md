@@ -6,11 +6,18 @@ GeometryOS maintains three independent version domains:
 
 | Domain | Current value in this phase | Meaning |
 |---|---|---|
-| Python package | `0.1.0` | Distribution version |
-| HTTP API | unversioned | Current delivery routes |
+| Python package | `0.1.0` | Distribution version until the release PR |
+| HTTP API | `v1` | Stable TutorBoard-facing HTTP contract |
+| OpenAPI info | `1.0.0` | Version of the v1 HTTP schema |
 | GIR schema | `0.2.0` | Mathematical data contract |
 
 A change to one domain does not automatically change the others.
+
+## HTTP API compatibility
+
+Stable consumer routes use `/api/v1`. Unversioned routes remain temporary compatibility aliases, retain their pre-v1 JSON shapes and are excluded from OpenAPI.
+
+Removing an unversioned alias requires a separately documented breaking change and confirmation that known consumers have migrated. New stable fields and constraints are added to v1 DTOs, not retrofitted into legacy response shapes.
 
 ## Canonical writer contract
 
@@ -24,7 +31,7 @@ The reader accepts exactly one legacy marker: `version: "0.1"`. It upgrades that
 
 The compatibility layer does not repair objects, constraints, references, metadata or construction steps. A structurally or semantically invalid legacy scene remains invalid after its version marker is upgraded.
 
-## Rejected inputs
+## Rejected GIR inputs
 
 GeometryOS rejects:
 
@@ -42,7 +49,7 @@ A GIR patch change may clarify documentation or validation without changing the 
 
 New object or constraint union variants may still be breaking for exhaustive generated clients. Consumer compatibility must therefore be evaluated before publishing them.
 
-## Required change procedure
+## Required GIR change procedure
 
 Any GIR model change must update, in the same pull request:
 
@@ -52,8 +59,8 @@ Any GIR model change must update, in the same pull request:
 4. canonical benchmark fixtures;
 5. compatibility tests where applicable;
 6. `docs/GIR_SPEC.md` and this policy;
-7. future TutorBoard consumer contracts once they exist.
+7. TutorBoard consumer contracts once they exist.
 
 ## Removing GIR 0.1 support
 
-Legacy support may be removed only in a separately documented breaking change after all known persisted scenes and consumers have migrated. Until then, legacy support remains read-only: no current writer may produce GIR 0.1.
+Legacy GIR support may be removed only in a separately documented breaking change after all known persisted scenes and consumers have migrated. Until then, legacy support remains read-only: no current writer may produce GIR 0.1.
