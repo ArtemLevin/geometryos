@@ -34,7 +34,16 @@ jobs:
         run: uv sync --frozen --dev
 
       - name: Verify
-        run: make verify
+        run: |
+          set -o pipefail
+          make verify 2>&1 | tee verify.log
+
+      - name: Upload verification log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr6-verify-log
+          path: verify.log
 
   package-smoke:
     runs-on: ubuntu-latest
