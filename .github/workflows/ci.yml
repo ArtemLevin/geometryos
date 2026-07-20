@@ -120,7 +120,16 @@ jobs:
         run: npm ci --prefix contracts/tutorboard/typescript
 
       - name: Generate TypeScript contract
-        run: npm run --prefix contracts/tutorboard/typescript generate
+        run: |
+          set -o pipefail
+          npm run --prefix contracts/tutorboard/typescript generate 2>&1 | tee typescript-generate.log
+
+      - name: Upload TypeScript generation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr7-typescript-generate-log
+          path: typescript-generate.log
 
       - name: Type-check TutorBoard smoke client
         run: npm run --prefix contracts/tutorboard/typescript typecheck
