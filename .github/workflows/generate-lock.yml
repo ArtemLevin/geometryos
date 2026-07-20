@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - integration/01-green-baseline
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
