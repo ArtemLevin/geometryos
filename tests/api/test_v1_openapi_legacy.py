@@ -1,6 +1,11 @@
 from typing import Any
 
-from gir_api.constants import API_TITLE, API_V1_VERSION, MAX_GENERATE_INPUT_CHARS
+from gir_api.constants import (
+    API_TITLE,
+    API_V1_VERSION,
+    MAX_GENERATE_INPUT_CHARS,
+    PROBLEM_MEDIA_TYPE,
+)
 from gir_api.main import app
 
 ALTITUDE_PROMPT = "Постройте треугольник ABC. Проведите высоту из вершины A к стороне BC."
@@ -68,12 +73,26 @@ def test_openapi_generate_request_constraints_are_published() -> None:
 
 def test_openapi_generate_response_is_discriminated_union() -> None:
     schema = app.openapi()
-    response_schema = schema["paths"]["/api/v1/generate"]["post"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]
+    response_schema = schema["paths"]["/api/v1/generate"]["post"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"]
 
     assert "oneOf" in response_schema
     assert response_schema["discriminator"]["propertyName"] == "status"
+
+
+def test_openapi_publishes_problem_details_for_runtime_failures() -> None:
+    schema = app.openapi()
+    operations = {
+        "/api/v1/generate": {"413", "422", "500", "504"},
+        "/api/v1/validate-gir": {"422", "500", "504"},
+        "/api/v1/render/svg": {"422", "500", "504"},
+        "/api/v1/render/tikz": {"422", "500", "504"},
+    }
+    for path, statuses in operations.items():
+        responses = schema["paths"][path]["post"]["responses"]
+        for status in statuses:
+            assert PROBLEM_MEDIA_TYPE in responses[status]["content"]
 
 
 def test_legacy_aliases_remain_compatible_and_hidden(
