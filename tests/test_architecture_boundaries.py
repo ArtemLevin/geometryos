@@ -56,6 +56,8 @@ def test_cli_does_not_orchestrate_geometry_implementations() -> None:
             "gir_core.validation.semantic_validator",
             "gir_render.svg_renderer",
             "gir_render.tikz_renderer",
+            "gir_api.readiness",
+            "uvicorn",
         ),
     )
 
@@ -64,7 +66,16 @@ def test_application_layer_is_transport_agnostic() -> None:
     for path in (ROOT / "src/gir_application").glob("*.py"):
         _assert_no_forbidden_imports(
             path,
-            ("fastapi", "typer", "gir_api", "gir_cli", "anyio", "pydantic_settings"),
+            (
+                "fastapi",
+                "typer",
+                "gir_api",
+                "gir_cli",
+                "anyio",
+                "pydantic_settings",
+                "uvicorn",
+                "signal",
+            ),
         )
 
 
@@ -80,6 +91,8 @@ def test_core_does_not_depend_on_outer_layers() -> None:
                 "gir_render",
                 "anyio",
                 "pydantic_settings",
+                "uvicorn",
+                "signal",
             ),
         )
 
@@ -98,6 +111,23 @@ def test_api_runtime_boundaries_do_not_import_geometry_implementations() -> None
         "logging.py",
         "middleware.py",
         "problem_details.py",
+        "readiness.py",
         "settings.py",
     ):
         _assert_no_forbidden_imports(ROOT / "src/gir_api" / filename, forbidden)
+
+
+def test_readiness_probe_does_not_execute_geometry_or_network_work() -> None:
+    _assert_no_forbidden_imports(
+        ROOT / "src/gir_api/readiness.py",
+        (
+            "anyio",
+            "urllib",
+            "httpx",
+            "gir_application",
+            "gir_ai",
+            "gir_render",
+            "gir_core.normalize",
+            "gir_core.validation.semantic_validator",
+        ),
+    )
