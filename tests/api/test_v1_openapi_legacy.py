@@ -50,9 +50,11 @@ def test_openapi_operation_ids_are_explicit_and_unique() -> None:
 
 def test_openapi_generate_request_constraints_are_published() -> None:
     schema = app.openapi()
-    request_schema = schema["paths"]["/api/v1/generate"]["post"]["requestBody"]["content"][
-        "application/json"
-    ]["schema"]
+    request_schema = (
+        schema["paths"]["/api/v1/generate"]["post"]["requestBody"]["content"][
+            "application/json"
+        ]["schema"]
+    )
     model = _resolve_schema(request_schema, schema)
     properties = model["properties"]
 
@@ -61,16 +63,18 @@ def test_openapi_generate_request_constraints_are_published() -> None:
     assert properties["input"]["maxLength"] == MAX_GENERATE_INPUT_CHARS
     assert properties["output"]["maxItems"] == 2
     assert properties["output"]["uniqueItems"] is True
-    assert properties["mode"].get("const") == "strict" or properties["mode"].get("enum") == [
-        "strict"
-    ]
+    assert (
+        properties["mode"].get("const") == "strict"
+        or properties["mode"].get("enum") == ["strict"]
+    )
 
 
 def test_openapi_generate_response_is_discriminated_union() -> None:
     schema = app.openapi()
-    response_schema = schema["paths"]["/api/v1/generate"]["post"]["responses"]["200"][
-        "content"
-    ]["application/json"]["schema"]
+    response_schema = (
+        schema["paths"]["/api/v1/generate"]["post"]["responses"]["200"]["content"]
+        ["application/json"]["schema"]
+    )
 
     assert "oneOf" in response_schema
     assert response_schema["discriminator"]["propertyName"] == "status"
