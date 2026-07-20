@@ -32,6 +32,12 @@ SettingsDependency = Annotated[ApiSettings, Depends(get_runtime_settings)]
     response_model=GenerateV1Response,
     operation_id="geometryos_v1_generate",
     tags=["Generation"],
+    summary="Generate canonical geometry",
+    description=(
+        "Convert a supported natural-language construction into canonical GIR and "
+        "optional SVG or TikZ output. Ambiguity and unsupported constructions are "
+        "returned as typed HTTP 200 domain results."
+    ),
     responses=problem_responses(413, 422, 500, 504),
 )
 async def generate_v1(
