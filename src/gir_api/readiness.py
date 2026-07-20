@@ -81,8 +81,7 @@ def readiness_snapshot(application: FastAPI) -> ReadinessResponse:
                 CheckStatus.PASS
                 if executor is not None
                 and all(
-                    callable(getattr(executor, name, None))
-                    for name in _REQUIRED_EXECUTOR_METHODS
+                    callable(getattr(executor, name, None)) for name in _REQUIRED_EXECUTOR_METHODS
                 )
                 else CheckStatus.FAIL
             ),

@@ -241,10 +241,7 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
             method="POST",
             payload={
                 "input_type": "text",
-                "input": (
-                    "Постройте треугольник ABC. "
-                    "Проведите высоту из вершины A к стороне BC."
-                ),
+                "input": ("Постройте треугольник ABC. Проведите высоту из вершины A к стороне BC."),
                 "output": ["svg"],
                 "mode": "strict",
             },

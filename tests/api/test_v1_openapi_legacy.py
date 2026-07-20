@@ -87,9 +87,9 @@ def test_openapi_generate_request_constraints_are_published() -> None:
 
 def test_openapi_generate_response_is_discriminated_union() -> None:
     schema = app.openapi()
-    response_schema = schema["paths"]["/api/v1/generate"]["post"]["responses"]["200"][
-        "content"
-    ]["application/json"]["schema"]
+    response_schema = schema["paths"]["/api/v1/generate"]["post"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]
 
     assert "oneOf" in response_schema
     assert response_schema["discriminator"]["propertyName"] == "status"
