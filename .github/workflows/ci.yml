@@ -34,16 +34,7 @@ jobs:
         run: uv sync --frozen --dev
 
       - name: Verify
-        run: |
-          set -o pipefail
-          make verify 2>&1 | tee verify.log
-
-      - name: Upload verification log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr7-verify-log
-          path: verify.log
+        run: make verify
 
       - name: Check OpenAPI compatibility with base branch
         if: github.event_name == 'pull_request'
@@ -120,16 +111,7 @@ jobs:
         run: npm ci --prefix contracts/tutorboard/typescript
 
       - name: Generate TypeScript contract
-        run: |
-          set -o pipefail
-          npm run --prefix contracts/tutorboard/typescript generate 2>&1 | tee typescript-generate.log
-
-      - name: Upload TypeScript generation log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr7-typescript-generate-log
-          path: typescript-generate.log
+        run: npm run --prefix contracts/tutorboard/typescript generate
 
       - name: Type-check TutorBoard smoke client
         run: npm run --prefix contracts/tutorboard/typescript typecheck
