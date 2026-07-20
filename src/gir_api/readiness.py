@@ -36,9 +36,7 @@ class ReadinessCheck(BaseModel):
 class ReadinessResponse(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
-        json_schema_extra={
-            "examples": [cast(dict[str, Any], READINESS_RESPONSE_EXAMPLE)]
-        },
+        json_schema_extra={"examples": [cast(dict[str, Any], READINESS_RESPONSE_EXAMPLE)]},
     )
 
     status: Literal["ready", "not_ready"]
