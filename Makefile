@@ -7,10 +7,16 @@ UV_RUN := $(UV) run
 BENCHMARK_GIR ?= benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 HOST ?= 127.0.0.1
 PORT ?= 8000
+IMAGE ?= geometryos
+IMAGE_TAG ?= local
+CONTAINER_IMAGE := $(IMAGE):$(IMAGE_TAG)
+BUILD_REVISION ?= $(shell git rev-parse HEAD 2>/dev/null || echo local)
+BUILD_VERSION ?= 0.1.0
 
 .PHONY: help sync install lock lock-upgrade test lint format format-check typecheck schema schema-check \
-	benchmarks verify package-smoke verify-all check api validate render-svg render-tikz cli-benchmark \
-	cli-export-schema cli-schema-check clean py-compile
+	benchmarks verify package-smoke verify-all check api api-prod validate render-svg render-tikz \
+	cli-benchmark cli-export-schema cli-schema-check container-build container-smoke compose-config \
+	compose-up compose-down compose-logs clean py-compile
 
 help: ## Show available Make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "GIR developer commands:\n\n"} /^[a-zA-Z0-9_-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -60,8 +66,11 @@ verify-all: verify package-smoke ## Run source and distribution verification.
 
 check: test lint format-check typecheck schema-check benchmarks ## Run individual source checks.
 
-api: ## Start the FastAPI development server.
+api: ## Start the FastAPI development server with reload.
 	$(UV_RUN) uvicorn gir_api.main:app --reload --host $(HOST) --port $(PORT)
+
+api-prod: ## Start the production-style single-process Uvicorn server.
+	$(UV_RUN) uvicorn gir_api.main:app --host 0.0.0.0 --port $(PORT) --no-access-log --timeout-graceful-shutdown 20
 
 validate: ## Validate BENCHMARK_GIR or another GIR path: make validate BENCHMARK_GIR=path.gir.json.
 	$(UV_RUN) gir validate $(BENCHMARK_GIR)
@@ -80,6 +89,24 @@ cli-export-schema: ## Export schema through the installed CLI entrypoint.
 
 cli-schema-check: ## Check schema through the installed CLI entrypoint.
 	$(UV_RUN) gir export-schema --check --output schemas/gir-0.2.schema.json
+
+container-build: ## Build the hardened GeometryOS container image.
+	docker build --tag $(CONTAINER_IMAGE) --build-arg BUILD_REVISION=$(BUILD_REVISION) --build-arg BUILD_VERSION=$(BUILD_VERSION) .
+
+container-smoke: ## Build and run the complete hardened container smoke test.
+	$(UV_RUN) $(PYTHON) scripts/container_smoke.py --image $(CONTAINER_IMAGE) --revision $(BUILD_REVISION) --version $(BUILD_VERSION)
+
+compose-config: ## Validate the Docker Compose deployment definition.
+	docker compose config --quiet
+
+compose-up: ## Build and start GeometryOS through Docker Compose.
+	docker compose up --build --detach
+
+compose-down: ## Stop Compose services and remove orphan containers.
+	docker compose down --remove-orphans
+
+compose-logs: ## Follow GeometryOS Compose logs.
+	docker compose logs --follow geometryos
 
 py-compile: ## Syntax-check Python files without importing third-party dependencies.
 	$(PYTHON) -m py_compile $$(find src scripts tests -name '*.py' -not -path '*/.venv/*')
