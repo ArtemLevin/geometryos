@@ -4,12 +4,9 @@ on:
   push:
     branches:
       - integration/01-green-baseline
-  pull_request:
-    branches:
-      - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate-lock:
@@ -18,6 +15,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: integration/01-green-baseline
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -30,10 +30,14 @@ jobs:
       - name: Generate lock file
         run: uv lock
 
-      - name: Upload uv.lock
-        uses: actions/upload-artifact@v4
-        with:
-          name: uv-lock
-          path: uv.lock
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit lock file when changed
+        run: |
+          if [ -z "$(git status --porcelain -- uv.lock)" ]; then
+            echo "uv.lock is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uv.lock
+          git commit -m "chore: lock project dependencies"
+          git push origin HEAD:integration/01-green-baseline
