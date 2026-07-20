@@ -1,11 +1,4 @@
 from gir_ai.text_to_gir.adapter import AiAmbiguity, text_to_gir
-from gir_core.models.scene import GirScene
-from gir_core.models.validation import ValidationReport
-from gir_core.normalize import normalize_gir
-from gir_core.validation.semantic_validator import validate_scene
-from gir_render.svg_renderer import render_svg
-from gir_render.tikz_renderer import render_tikz
-
 from gir_application.contracts import (
     GenerateGeometryCommand,
     GenerateGeometryResult,
@@ -19,6 +12,12 @@ from gir_application.contracts import (
     RenderGeometryResult,
 )
 from gir_application.ports import GeometryPipelineDependencies
+from gir_core.models.scene import GirScene
+from gir_core.models.validation import ValidationReport
+from gir_core.normalize import normalize_gir
+from gir_core.validation.semantic_validator import validate_scene
+from gir_render.svg_renderer import render_svg
+from gir_render.tikz_renderer import render_tikz
 
 DEFAULT_DEPENDENCIES = GeometryPipelineDependencies(
     text_to_gir=text_to_gir,
