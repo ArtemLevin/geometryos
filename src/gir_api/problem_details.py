@@ -61,7 +61,7 @@ def problem_response(
     )
 
 
-def problem_responses(*statuses: int) -> dict[int, dict[str, Any]]:
+def problem_responses(*statuses: int) -> dict[int | str, dict[str, Any]]:
     descriptions = {
         413: "Request exceeds the configured operational limit.",
         422: "Request or GIR validation failed.",
