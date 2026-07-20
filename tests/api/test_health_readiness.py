@@ -93,9 +93,11 @@ def test_startup_failure_marks_lifecycle_failed(
     malformed_executor = cast(TimedApplicationExecutor, object())
     application = app_factory(executor=malformed_executor, lifecycle=lifecycle)
 
-    with pytest.raises(RuntimeError, match="Runtime components are not ready"):
-        with TestClient(application):
-            pass
+    with (
+        pytest.raises(RuntimeError, match="Runtime components are not ready"),
+        TestClient(application),
+    ):
+        pass
 
     assert lifecycle.phase is LifecyclePhase.FAILED
 
