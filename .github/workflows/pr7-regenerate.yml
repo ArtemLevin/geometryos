@@ -1,0 +1,40 @@
+name: Regenerate PR 7 contract artifacts
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.head_ref == 'integration/07-openapi-consumer-contract'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: uv sync --frozen --dev
+      - name: Regenerate machine contracts
+        run: |
+          uv run python scripts/export_openapi.py
+          uv run python scripts/export_tutorboard_contracts.py
+          uv run ruff format .
+      - name: Remove temporary workflow
+        run: rm -f .github/workflows/pr7-regenerate.yml
+      - name: Commit regenerated artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: regenerate published API contracts"
+          git push origin HEAD:${{ github.head_ref }}
