@@ -1,0 +1,57 @@
+name: Apply PR 7 contract implementation
+
+on:
+  push:
+    paths:
+      - .github/pr7-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/07-openapi-consumer-contract
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Apply source changes
+        run: python scripts/_apply_pr7.py
+
+      - name: Install locked Python dependencies
+        run: uv sync --frozen --dev
+
+      - name: Generate OpenAPI and TutorBoard fixtures
+        run: |
+          uv run python scripts/export_openapi.py
+          uv run python scripts/export_tutorboard_contracts.py
+
+      - name: Generate npm lock
+        run: npm install --prefix contracts/tutorboard/typescript --package-lock-only --ignore-scripts
+
+      - name: Format Python
+        run: uv run ruff format .
+
+      - name: Remove temporary automation
+        run: rm -f scripts/_apply_pr7.py .github/pr7-trigger .github/workflows/pr7-apply.yml
+
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: publish OpenAPI v1 and TutorBoard consumer contracts"
+          git push origin HEAD:integration/07-openapi-consumer-contract
