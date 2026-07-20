@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 from gir_api.constants import API_V1_VERSION
+from gir_api.problem_details import ProblemDetail
 from gir_api.settings import ApiSettings
 
 OPENAPI_ARTIFACT_PATH = Path("schemas/openapi.v1.json")
@@ -31,10 +32,21 @@ def install_openapi_contract(application: FastAPI) -> None:
             tags=application.openapi_tags,
         )
         schema["info"].update(OPENAPI_EXTENSIONS)
+        _install_problem_components(schema)
         application.openapi_schema = schema
         return schema
 
     application.openapi = custom_openapi  # type: ignore[method-assign]
+
+
+def _install_problem_components(document: dict[str, Any]) -> None:
+    schema = ProblemDetail.model_json_schema(
+        ref_template="#/components/schemas/{model}"
+    )
+    definitions = schema.pop("$defs", {})
+    component_schemas = document.setdefault("components", {}).setdefault("schemas", {})
+    component_schemas.update(definitions)
+    component_schemas["ProblemDetail"] = schema
 
 
 def build_openapi_document() -> dict[str, Any]:
@@ -68,4 +80,6 @@ def write_openapi_artifact(output: Path = OPENAPI_ARTIFACT_PATH) -> Path:
 def check_openapi_artifact(output: Path = OPENAPI_ARTIFACT_PATH) -> bool:
     if not output.exists():
         return False
-    return output.read_text(encoding="utf-8") == canonical_openapi_json(build_openapi_document())
+    return output.read_text(encoding="utf-8") == canonical_openapi_json(
+        build_openapi_document()
+    )
