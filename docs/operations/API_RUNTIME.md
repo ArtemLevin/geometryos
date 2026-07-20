@@ -31,6 +31,8 @@ uv run uvicorn gir_api.main:app --reload
 
 Every HTTP response contains `X-Request-ID`. A caller-provided value is reused only when it matches `^[A-Za-z0-9._-]{1,128}$`; otherwise GeometryOS generates a UUID. The same identifier appears in v1 Problem Details and structured server logs.
 
+The header is additive across health, stable v1, legacy compatibility and error responses; it does not alter existing JSON success bodies.
+
 Request and operation identifiers are stored in `ContextVar` instances and reset after every request. Parallel requests therefore retain isolated context.
 
 ## Problem Details
