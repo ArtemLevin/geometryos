@@ -33,17 +33,22 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --dev
 
+      - name: Format diagnostic file
+        run: uv run ruff format tests/api/test_v1_openapi_legacy.py
+
       - name: Verify
         run: |
           set -o pipefail
           make verify 2>&1 | tee verify.log
 
-      - name: Upload verification log
+      - name: Upload verification diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pr4-verify-log
-          path: verify.log
+          name: pr4-verify-diagnostics
+          path: |
+            verify.log
+            tests/api/test_v1_openapi_legacy.py
 
   package-smoke:
     runs-on: ubuntu-latest
