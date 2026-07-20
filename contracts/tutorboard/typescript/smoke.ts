@@ -19,9 +19,9 @@ function handleGenerateResponse(response: GenerateResponse): string | null {
     case "success":
       return response.gir.schema_version;
     case "needs_clarification":
-      return response.ambiguities[0]?.code ?? null;
+      return response.ambiguities?.[0]?.code ?? null;
     case "error":
-      return response.warnings[0]?.code ?? null;
+      return response.warnings?.[0]?.code ?? null;
     default: {
       const exhaustive: never = response;
       return exhaustive;
