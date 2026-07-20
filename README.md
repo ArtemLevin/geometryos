@@ -26,6 +26,7 @@ POST /api/v1/validate-gir
 POST /api/v1/render/svg
 POST /api/v1/render/tikz
 GET  /health
+GET  /ready
 ```
 
 Unversioned POST routes remain temporary compatibility aliases and are excluded from OpenAPI. Start the development API with `make api`, then call:
@@ -50,6 +51,7 @@ API resilience adds `X-Request-ID`, operation-specific soft timeouts, sanitized 
 - Python 3.11 is the canonical local and CI verification version.
 - `uv` is required for dependency management and command execution.
 - GNU Make is recommended, but direct Python commands are documented for Windows environments without Make.
+- Docker Engine and Docker Compose v2 are required for container verification and deployment.
 
 The project commits `.python-version` and `uv.lock`. Normal installation and CI must use the locked dependency graph.
 
@@ -124,6 +126,33 @@ The package smoke test:
 
 Temporary artifacts are removed automatically.
 
+## Container deployment
+
+Build and verify the hardened deployment image:
+
+```bash
+make container-build
+make container-smoke
+```
+
+Start the loopback-only Compose deployment:
+
+```bash
+make compose-up
+```
+
+Operational endpoints:
+
+```text
+http://127.0.0.1:8000/health
+http://127.0.0.1:8000/ready
+http://127.0.0.1:8000/docs
+```
+
+`/health` is liveness; `/ready` returns `200` only after FastAPI startup and while the runtime settings and application executor remain available. The image runs as UID/GID `10001:10001`, supports a read-only root filesystem, drops all Linux capabilities and uses `/ready` for Docker health.
+
+See `docs/operations/DEPLOYMENT.md` and `docs/adr/ADR-005-container-runtime-and-readiness.md`.
+
 ## Dependency workflow
 
 Install the committed dependency graph without modifying it:
@@ -162,6 +191,12 @@ make package-smoke
 make verify-all
 make schema-check
 make api
+make api-prod
+make container-build
+make container-smoke
+make compose-config
+make compose-up
+make compose-down
 make validate BENCHMARK_GIR=benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 ```
 
@@ -216,15 +251,22 @@ Equivalent direct command:
 uv run uvicorn gir_api.main:app --reload
 ```
 
+Production-style local process without reload:
+
+```bash
+make api-prod
+```
+
 ## Continuous integration
 
-GitHub Actions runs two independent jobs on pushes and pull requests:
+GitHub Actions runs three gated jobs on pushes and pull requests:
 
 - `verify` installs dependencies from `uv.lock` and runs `make verify`;
-- `package-smoke` independently builds and installs the wheel with `make package-smoke`.
+- `package-smoke` independently builds and installs the wheel with `make package-smoke`;
+- `container-smoke` runs after both jobs, validates Compose, builds the hardened image and checks runtime security, probes, stable API behavior and graceful shutdown.
 
-Both jobs use Python 3.11, frozen dependency installation, read-only repository permissions and explicit timeouts.
+All jobs use Python 3.11, frozen dependency installation, read-only repository permissions and explicit timeouts. Pull-request CI builds but does not publish container images.
 
 ## MVP
 
-The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, stable API v1, CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, Docker, OpenCV, SymPy or multi-user features.
+The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, stable API v1, readiness/liveness probes, a hardened container deployment, CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, OpenCV, SymPy or multi-user features.
