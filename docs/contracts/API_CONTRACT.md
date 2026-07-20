@@ -138,3 +138,19 @@ POST /render/tikz
 ```
 
 Legacy aliases preserve their pre-v1 request and response JSON shapes, including `mode: "draft"` and string warnings. They are hidden from OpenAPI and may be removed only in a separately documented breaking change after TutorBoard migration.
+
+## Runtime resilience
+
+Every HTTP response carries `X-Request-ID`. Valid caller-provided identifiers are echoed; invalid or missing values are replaced with a generated UUID.
+
+Infrastructure failures under `/api/v1` use `application/problem+json`. The stable runtime status matrix adds:
+
+| Situation | HTTP | Code |
+|---|---:|---|
+| Configured operational input limit exceeded | 413 | `input_too_large` |
+| Request or structural GIR validation failed | 422 | `request_validation_failed` |
+| Semantic-invalid GIR sent to render | 422 | `semantic_validation_failed` |
+| Operation deadline exceeded | 504 | `operation_timeout` |
+| Unexpected internal failure | 500 | `internal_error` |
+
+Successful and domain-result response DTOs remain unchanged. Legacy aliases retain their pre-v1 JSON bodies. Timeouts are soft: the API stops waiting, while an abandoned side-effect-free worker thread may finish later. See `docs/operations/API_RUNTIME.md`.

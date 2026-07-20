@@ -627,3 +627,11 @@ make verify
 не добавить ещё больше кода,
 а стабилизировать изменения и сохранить GIR-first архитектуру.
 ```
+
+## API resilience review checklist
+
+- Confirm every response receives `X-Request-ID` and request context is reset.
+- Confirm v1 transport failures use sanitized Problem Details and legacy JSON shapes remain compatible.
+- Confirm timeout logic exists only in `gir_api.execution` and does not enter `gir_core` or `gir_application`.
+- Confirm logs contain metadata only: never prompts, GIR, rendered output, secrets or exception messages.
+- Confirm successful API v1 response DTOs, GIR schema artifacts and render benchmarks remain unchanged.

@@ -64,3 +64,9 @@ Any GIR model change must update, in the same pull request:
 ## Removing GIR 0.1 support
 
 Legacy GIR support may be removed only in a separately documented breaking change after all known persisted scenes and consumers have migrated. Until then, legacy support remains read-only: no current writer may produce GIR 0.1.
+
+## Runtime failure compatibility
+
+Stable `/api/v1` infrastructure failures use Problem Details with stable `code` and `request_id` fields. Successful payloads and expected domain results remain governed by the API v1 DTOs. Unversioned aliases preserve their existing JSON bodies, with the additive `X-Request-ID` response header.
+
+Changing a Problem Details code, removing request correlation or changing a published HTTP status requires a documented API compatibility review.
