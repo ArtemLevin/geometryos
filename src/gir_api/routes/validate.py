@@ -22,6 +22,11 @@ ExecutorDependency = Annotated[TimedApplicationExecutor, Depends(get_executor)]
     response_model=ValidateGirV1Response,
     operation_id="geometryos_v1_validate_gir",
     tags=["Validation"],
+    summary="Validate and canonicalize GIR",
+    description=(
+        "Accept canonical GIR 0.2 or the supported legacy GIR 0.1 marker, return "
+        "canonical GIR 0.2, and report semantic validity without rendering."
+    ),
     responses=problem_responses(422, 500, 504),
 )
 async def validate_gir_v1(
@@ -47,6 +52,5 @@ def validate_gir_legacy(scene: GirScene) -> ValidationReport:
     return validate_geometry(scene)
 
 
-# Source-level aliases preserve pre-v1 imports for current Python consumers and tests.
 validate_gir = validate_gir_legacy
 router = legacy_router
