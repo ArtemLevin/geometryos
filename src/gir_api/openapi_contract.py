@@ -40,9 +40,7 @@ def install_openapi_contract(application: FastAPI) -> None:
 
 
 def _install_problem_components(document: dict[str, Any]) -> None:
-    schema = ProblemDetail.model_json_schema(
-        ref_template="#/components/schemas/{model}"
-    )
+    schema = ProblemDetail.model_json_schema(ref_template="#/components/schemas/{model}")
     definitions = schema.pop("$defs", {})
     component_schemas = document.setdefault("components", {}).setdefault("schemas", {})
     component_schemas.update(definitions)
@@ -80,6 +78,4 @@ def write_openapi_artifact(output: Path = OPENAPI_ARTIFACT_PATH) -> Path:
 def check_openapi_artifact(output: Path = OPENAPI_ARTIFACT_PATH) -> bool:
     if not output.exists():
         return False
-    return output.read_text(encoding="utf-8") == canonical_openapi_json(
-        build_openapi_document()
-    )
+    return output.read_text(encoding="utf-8") == canonical_openapi_json(build_openapi_document())
