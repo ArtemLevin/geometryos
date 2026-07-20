@@ -1,43 +1,47 @@
-from typing import Literal
-
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict, Field
 
+from gir_api.models import (
+    GenerateV1Request,
+    GenerateV1Response,
+    LegacyGenerateRequest,
+    LegacyGenerateResponse,
+)
+from gir_api.presenters import present_generate_legacy, present_generate_v1
 from gir_application import (
     GenerateGeometryCommand,
     GenerationMode,
-    GeometryAmbiguity,
     OutputFormat,
     generate_geometry,
 )
-from gir_core.models.scene import GirScene
-from gir_core.models.validation import ValidationReport
 
-router = APIRouter()
-
-
-class GenerateRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    input_type: Literal["text"]
-    input: str
-    output: list[Literal["svg", "tikz"]] = Field(default_factory=list)
-    mode: Literal["strict", "draft"] = "strict"
+v1_router = APIRouter()
+legacy_router = APIRouter()
 
 
-class GenerateResponse(BaseModel):
-    status: str
-    confidence: float
-    gir: GirScene | None
-    validation_report: ValidationReport | None
-    svg: str | None = None
-    tikz: str | None = None
-    warnings: list[str]
-    ambiguities: list[GeometryAmbiguity] = Field(default_factory=list)
-    explanation: str | None = None
+@v1_router.post(
+    "/generate",
+    response_model=GenerateV1Response,
+    operation_id="geometryos_v1_generate",
+    tags=["Generation"],
+)
+def generate_v1(request: GenerateV1Request) -> GenerateV1Response:
+    result = generate_geometry(
+        GenerateGeometryCommand(
+            input_type=request.input_type,
+            input=request.input,
+            outputs=frozenset(OutputFormat(item) for item in request.output),
+            mode=GenerationMode.STRICT,
+        )
+    )
+    return present_generate_v1(result)
 
 
-@router.post("/generate")
-def generate(request: GenerateRequest) -> GenerateResponse:
+@legacy_router.post(
+    "/generate",
+    response_model=LegacyGenerateResponse,
+    include_in_schema=False,
+)
+def generate_legacy(request: LegacyGenerateRequest) -> LegacyGenerateResponse:
     result = generate_geometry(
         GenerateGeometryCommand(
             input_type=request.input_type,
@@ -46,14 +50,4 @@ def generate(request: GenerateRequest) -> GenerateResponse:
             mode=GenerationMode(request.mode),
         )
     )
-    return GenerateResponse(
-        status=result.status.value,
-        confidence=result.confidence,
-        gir=result.gir,
-        validation_report=result.validation_report,
-        svg=result.artifacts.svg,
-        tikz=result.artifacts.tikz,
-        warnings=result.warnings,
-        ambiguities=result.ambiguities,
-        explanation=result.explanation,
-    )
+    return present_generate_legacy(result)
