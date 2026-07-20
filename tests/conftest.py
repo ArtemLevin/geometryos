@@ -1,19 +1,34 @@
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from copy import deepcopy
 from typing import Any
 
 import pytest
+from fastapi import FastAPI
 
-from gir_api.main import app
+from gir_api.execution import TimedApplicationExecutor
+from gir_api.main import create_app
+from gir_api.settings import ApiSettings
 
 
 @pytest.fixture
-def client() -> Generator[Any, None, None]:
+def app_factory() -> Callable[..., FastAPI]:
+    def factory(
+        *,
+        settings: ApiSettings | None = None,
+        executor: TimedApplicationExecutor | None = None,
+    ) -> FastAPI:
+        return create_app(settings=settings or ApiSettings(), executor=executor)
+
+    return factory
+
+
+@pytest.fixture
+def client(app_factory: Callable[..., FastAPI]) -> Generator[Any, None, None]:
     from fastapi.testclient import TestClient
 
-    with TestClient(app) as test_client:
+    with TestClient(app_factory()) as test_client:
         yield test_client
 
 
