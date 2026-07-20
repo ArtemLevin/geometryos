@@ -73,3 +73,13 @@ def test_render_tikz_structurally_invalid_scene_returns_422(
     response = client.post("/render/tikz", json=valid_altitude_payload)
 
     assert response.status_code == 422
+
+
+def test_render_rejects_unknown_schema_version(
+    client: Any,
+    valid_altitude_payload: dict[str, Any],
+) -> None:
+    valid_altitude_payload["schema_version"] = "0.3.0"
+    response = client.post("/render/svg", json=valid_altitude_payload)
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["type"] == "gir_schema_version_unsupported"

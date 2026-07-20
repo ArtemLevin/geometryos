@@ -31,7 +31,7 @@ CHECKS: list[Check] = [
             "export-schema",
             "--check",
             "--output",
-            "schemas/gir.schema.json",
+            "schemas/gir-0.2.schema.json",
         ],
     ),
 ]

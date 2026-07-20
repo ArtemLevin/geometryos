@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -93,3 +94,24 @@ def test_cli_export_schema_check_fails_for_stale_schema(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "out of date" in result.output.lower()
+
+
+def test_cli_validate_accepts_legacy_gir_0_1() -> None:
+    runner = CliRunner()
+    legacy = ROOT / "tests/fixtures/gir/v0_1/altitude.legacy.gir.json"
+    result = runner.invoke(app, ["validate", str(legacy)])
+
+    assert result.exit_code == 0
+    assert '"is_valid": true' in result.output
+
+
+def test_cli_validate_rejects_unknown_schema_version(tmp_path: Path) -> None:
+    runner = CliRunner()
+    payload = json.loads(VALID_SCENE.read_text(encoding="utf-8"))
+    payload["schema_version"] = "0.3.0"
+    future_scene = tmp_path / "future.gir.json"
+    future_scene.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = runner.invoke(app, ["validate", str(future_scene)])
+
+    assert result.exit_code != 0

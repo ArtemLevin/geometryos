@@ -5,6 +5,8 @@ from gir_core.models.scene import GirScene
 from gir_core.schema import gir_json_schema
 from scripts.export_schema import export_schema, schema_is_up_to_date
 
+SCHEMA_ARTIFACT = Path("schemas/gir-0.2.schema.json")
+
 
 def test_schema_export_generates_file() -> None:
     path = export_schema()
@@ -30,6 +32,6 @@ def test_schema_contains_constraint_definitions() -> None:
 
 def test_committed_schema_is_up_to_date() -> None:
     generated = GirScene.model_json_schema()
-    committed = json.loads(Path("schemas/gir.schema.json").read_text(encoding="utf-8"))
+    committed = json.loads(SCHEMA_ARTIFACT.read_text(encoding="utf-8"))
     assert json.dumps(committed, sort_keys=True) == json.dumps(generated, sort_keys=True)
     assert schema_is_up_to_date()

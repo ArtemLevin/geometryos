@@ -3,6 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from gir_core.models.scene import GirScene
+from gir_core.versioning import GIR_SCHEMA_VERSION
 
 
 class AiAmbiguity(BaseModel):
@@ -119,7 +120,7 @@ def _base_objects(extra: list[dict[str, object]]) -> list[dict[str, object]]:
 def _triangle_scene() -> GirScene:
     return GirScene.model_validate(
         {
-            "version": "0.1",
+            "schema_version": GIR_SCHEMA_VERSION,
             "scene_type": "2d",
             "objects": _base_objects(
                 [
@@ -146,7 +147,7 @@ def _triangle_scene() -> GirScene:
 def _midpoint_scene() -> GirScene:
     return GirScene.model_validate(
         {
-            "version": "0.1",
+            "schema_version": GIR_SCHEMA_VERSION,
             "scene_type": "2d",
             "objects": _base_objects(
                 [
@@ -181,7 +182,7 @@ def _midpoint_scene() -> GirScene:
 def _angle_bisector_scene() -> GirScene:
     return GirScene.model_validate(
         {
-            "version": "0.1",
+            "schema_version": GIR_SCHEMA_VERSION,
             "scene_type": "2d",
             "objects": _base_objects(
                 [
@@ -223,7 +224,7 @@ def _angle_bisector_scene() -> GirScene:
 def _altitude_scene() -> GirScene:
     return GirScene.model_validate(
         {
-            "version": "0.1",
+            "schema_version": GIR_SCHEMA_VERSION,
             "scene_type": "2d",
             "objects": _base_objects(
                 [
@@ -266,7 +267,7 @@ def _altitude_scene() -> GirScene:
 def _median_scene() -> GirScene:
     return GirScene.model_validate(
         {
-            "version": "0.1",
+            "schema_version": GIR_SCHEMA_VERSION,
             "scene_type": "2d",
             "objects": _base_objects(
                 [

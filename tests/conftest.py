@@ -20,7 +20,7 @@ def client() -> Generator[Any, None, None]:
 @pytest.fixture
 def valid_altitude_payload() -> dict[str, Any]:
     return {
-        "version": "0.1",
+        "schema_version": "0.2.0",
         "scene_type": "2d",
         "objects": [
             {"id": "A", "type": "point", "label": "A"},

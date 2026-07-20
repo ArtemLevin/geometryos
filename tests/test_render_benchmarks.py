@@ -89,3 +89,11 @@ def test_render_tikz_triangle_benchmark_output_contains_contract_markers() -> No
     assert "A" in output
     assert "B" in output
     assert "C" in output
+
+
+def test_render_benchmark_inputs_are_canonical_gir_0_2() -> None:
+    for directory in (SVG_BENCHMARKS, TIKZ_BENCHMARKS):
+        for path in directory.glob("*.gir.json"):
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            assert payload["schema_version"] == "0.2.0", path
+            assert "version" not in payload, path

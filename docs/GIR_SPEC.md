@@ -1,28 +1,68 @@
-# GIR Spec 0.1
+# GIR Specification 0.2
 
-GIR describes mathematical construction independently of visual coordinates. A scene has version, scene_type, objects, constraints, construction_steps and metadata. Objects include points, segments, lines, rays, circles, triangles, angles and labels. Constraints include membership, collinearity, perpendicularity, altitude, median and related primitives.
+## Purpose
 
-## Altitude example
-A, B, C are points; BC is a segment; H belongs to BC; AH is perpendicular to BC; altitude is from A to BC through H.
+Geometry Intermediate Representation (GIR) is the canonical mathematical contract between parsers, validators, layout engines, renderers and external consumers such as TutorBoard. GIR describes what a construction means independently of screen coordinates and UI state.
 
-## Median example
-M is midpoint of BC; AM is the median from A to BC.
+## Canonical schema version
 
-## Ambiguous case
-“Проведите биссектрису” in triangle ABC is ambiguous until angle A, B or C is specified.
+Every canonical scene must contain:
 
+```json
+{"schema_version":"0.2.0"}
+```
 
-## Constraint target types
-GIR 0.1 validation is structural and type-aware, but it is not a solver. It checks that constraint roles reference compatible object types:
+`schema_version` is required and is serialized in every GIR 0.2 output. The legacy field `version` is not part of the GIR 0.2 schema.
 
-- collinearity constraints target points;
-- parallel and perpendicular constraints target line-like objects (`segment`, `line`, `ray`);
-- segment and line endpoints, ray endpoints, triangle vertices and angle points must be distinct;
-- collinearity and non-collinearity constraints target distinct points;
-- midpoint and intersection constraints distinguish constructed points from carrier objects;
-- altitude constraints target a source `point`, a line-like carrier (`segment`, `line`, `ray`), a foot `point` and an altitude `segment`;
-- median constraints target a source `point`, a carrier `segment`, a midpoint `point` and a median `segment`;
-- angle bisectors target an `angle` and a `ray`;
-- circumcircle and incircle constraints target a `triangle` and a `circle`.
+## Scene structure
 
-These checks prevent mathematically dirty GIR such as using a point where a circle is required, while still avoiding premature proof of constructibility.
+A scene contains:
+
+- `schema_version`: exactly `0.2.0`;
+- `scene_type`: currently exactly `2d`;
+- `objects`: typed mathematical objects;
+- `constraints`: typed semantic relationships;
+- `construction_steps`: an ordered explanatory construction sequence;
+- `metadata`: optional non-semantic producer metadata.
+
+## Objects
+
+The current object union includes points, segments, lines, rays, circles, triangles, angles and labels. Object identifiers are stable references used by constraints and construction steps.
+
+## Constraints
+
+The current constraint union includes membership, collinearity, non-collinearity, parallelism, perpendicularity, equal length, midpoint, intersection, altitude, median, angle bisector, circumcircle and incircle relationships.
+
+## Structural validation
+
+Pydantic validates required fields, discriminated unions, field types, forbidden extra fields and the exact GIR schema version before semantic validation runs.
+
+Unknown, missing or conflicting schema versions are rejected. GeometryOS never attempts best-effort parsing of an unknown GIR version.
+
+## Semantic validation
+
+Semantic validation is structural and type-aware, but it is not a geometric solver. It checks, among other invariants:
+
+- referenced objects and constraints exist;
+- object and constraint ids are unique;
+- point roles reference points;
+- line-like roles reference segments, lines or rays as appropriate;
+- segment endpoints, triangle vertices and angle points are distinct;
+- altitude, median, midpoint, angle-bisector, circumcircle and incircle roles target compatible types;
+- construction steps reference existing objects and constraints.
+
+It does not prove global constructibility or solve arbitrary systems of geometric constraints.
+
+## Normalization and rendering
+
+Compatibility conversion completes before a `GirScene` exists. Normalization therefore receives canonical GIR 0.2 only. Renderers receive semantically valid canonical scenes and must not invent or repair geometry.
+
+## GIR versus board state
+
+GIR does not store TutorBoard presentation state such as camera position, zoom, selection, cursors, toolbar state, z-index, WebSocket state or collaboration metadata. Layout coordinates and visual interaction state belong to dedicated downstream models.
+
+## Compatibility
+
+GeometryOS temporarily reads legacy GIR 0.1 payloads containing `version: "0.1"`. The compatibility layer performs one transformation only: it replaces that top-level marker with `schema_version: "0.2.0"`. It does not add missing geometry, remove unknown fields or repair semantic errors.
+
+All writers, API outputs, CLI-generated scenes and benchmark fixtures use GIR 0.2. See `docs/COMPATIBILITY.md` for the compatibility policy.

@@ -110,3 +110,20 @@ def test_generate_invalid_request_payload_returns_422(client: Any) -> None:
     )
 
     assert response.status_code == 422
+
+
+def test_generate_returns_canonical_gir_0_2(client: Any) -> None:
+    response = client.post(
+        "/generate",
+        json={
+            "input_type": "text",
+            "input": ALTITUDE_PROMPT,
+            "output": [],
+            "mode": "strict",
+        },
+    )
+
+    assert response.status_code == 200
+    gir = response.json()["gir"]
+    assert gir["schema_version"] == "0.2.0"
+    assert "version" not in gir

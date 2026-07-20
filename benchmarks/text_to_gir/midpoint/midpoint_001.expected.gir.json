@@ -1,1 +1,107 @@
-{"version":"0.1","scene_type":"2d","objects":[{"id":"A","type":"point","label":"A"},{"id":"B","type":"point","label":"B"},{"id":"C","type":"point","label":"C"},{"id":"BC","type":"segment","points":["B","C"]},{"id":"ABC","type":"triangle","vertices":["A","B","C"]},{"id":"AB","type":"segment","points":["A","B"]},{"id":"CA","type":"segment","points":["C","A"]},{"id":"M","type":"point","label":"M"}],"constraints":[{"id":"c_noncol_abc","type":"non_collinear","points":["A","B","C"]},{"id":"c_mid_m_bc","type":"midpoint","point":"M","object":"BC"}],"construction_steps":[{"id":"s1","action":"create_triangle","objects":["A","B","C","AB","BC","CA","ABC"],"constraints":["c_noncol_abc"]},{"id":"s2","action":"construct_midpoint","objects":["M"],"constraints":["c_mid_m_bc"]}],"metadata":{"source":"rule_based_stub"}}
+{
+  "schema_version": "0.2.0",
+  "scene_type": "2d",
+  "objects": [
+    {
+      "id": "A",
+      "type": "point",
+      "label": "A"
+    },
+    {
+      "id": "B",
+      "type": "point",
+      "label": "B"
+    },
+    {
+      "id": "C",
+      "type": "point",
+      "label": "C"
+    },
+    {
+      "id": "BC",
+      "type": "segment",
+      "points": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "ABC",
+      "type": "triangle",
+      "vertices": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "AB",
+      "type": "segment",
+      "points": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "CA",
+      "type": "segment",
+      "points": [
+        "C",
+        "A"
+      ]
+    },
+    {
+      "id": "M",
+      "type": "point",
+      "label": "M"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "c_noncol_abc",
+      "type": "non_collinear",
+      "points": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "c_mid_m_bc",
+      "type": "midpoint",
+      "point": "M",
+      "object": "BC"
+    }
+  ],
+  "construction_steps": [
+    {
+      "id": "s1",
+      "action": "create_triangle",
+      "objects": [
+        "A",
+        "B",
+        "C",
+        "AB",
+        "BC",
+        "CA",
+        "ABC"
+      ],
+      "constraints": [
+        "c_noncol_abc"
+      ]
+    },
+    {
+      "id": "s2",
+      "action": "construct_midpoint",
+      "objects": [
+        "M"
+      ],
+      "constraints": [
+        "c_mid_m_bc"
+      ]
+    }
+  ],
+  "metadata": {
+    "source": "rule_based_stub"
+  }
+}

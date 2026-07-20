@@ -64,3 +64,10 @@ def test_soft_comparison_detects_missing_ambiguity_code() -> None:
     )
 
     assert errors == ["missing expected ambiguity codes: other_code"]
+
+
+def test_text_to_gir_success_fixtures_are_canonical_gir_0_2() -> None:
+    for path in TEXT_TO_GIR.glob("*/*.expected.gir.json"):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        assert payload["schema_version"] == "0.2.0", path
+        assert "version" not in payload, path

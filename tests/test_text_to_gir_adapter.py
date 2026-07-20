@@ -53,3 +53,20 @@ def test_text_to_gir_triangle_with_unsupported_circle_text_stays_error() -> None
 
     assert result.status == "error"
     assert result.gir is None
+
+
+def test_all_successful_adapter_scenes_emit_canonical_gir_0_2() -> None:
+    prompts = [
+        "Постройте треугольник ABC.",
+        "Постройте треугольник ABC. Отметьте середину M стороны BC.",
+        "Постройте треугольник ABC. Проведите медиану из вершины A к стороне BC.",
+        "Постройте треугольник ABC. Проведите высоту из вершины A к стороне BC.",
+        "Постройте треугольник ABC. Проведите биссектрису угла A.",
+    ]
+
+    for prompt in prompts:
+        result = text_to_gir(prompt)
+        assert result.status == "success"
+        assert result.gir is not None
+        assert result.gir.schema_version == "0.2.0"
+        assert "version" not in result.gir.model_dump()

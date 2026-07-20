@@ -41,7 +41,7 @@ format-check: ## Check Python formatting without modifying files.
 typecheck: ## Run mypy over src/.
 	$(UV_RUN) mypy src
 
-schema: ## Export GIR JSON Schema to schemas/gir.schema.json.
+schema: ## Export GIR JSON Schema to schemas/gir-0.2.schema.json.
 	$(UV_RUN) $(PYTHON) scripts/export_schema.py
 
 schema-check: ## Check that committed GIR JSON Schema is up to date.
@@ -76,10 +76,10 @@ cli-benchmark: ## Run benchmarks through the installed CLI entrypoint.
 	$(UV_RUN) gir benchmark --root .
 
 cli-export-schema: ## Export schema through the installed CLI entrypoint.
-	$(UV_RUN) gir export-schema --output schemas/gir.schema.json
+	$(UV_RUN) gir export-schema --output schemas/gir-0.2.schema.json
 
 cli-schema-check: ## Check schema through the installed CLI entrypoint.
-	$(UV_RUN) gir export-schema --check --output schemas/gir.schema.json
+	$(UV_RUN) gir export-schema --check --output schemas/gir-0.2.schema.json
 
 py-compile: ## Syntax-check Python files without importing third-party dependencies.
 	$(PYTHON) -m py_compile $$(find src scripts tests -name '*.py' -not -path '*/.venv/*')
