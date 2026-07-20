@@ -2,7 +2,7 @@
 
 ## Independent version domains
 
-GeometryOS maintains three independent version domains:
+GeometryOS maintains independent version domains:
 
 | Domain | Current value in this phase | Meaning |
 |---|---|---|
@@ -10,6 +10,7 @@ GeometryOS maintains three independent version domains:
 | HTTP API | `v1` | Stable TutorBoard-facing HTTP contract |
 | OpenAPI info | `1.0.0` | Version of the v1 HTTP schema |
 | GIR schema | `0.2.0` | Mathematical data contract |
+| TutorBoard contract | `tutorboard/v1` | Executable consumer fixture set |
 
 A change to one domain does not automatically change the others.
 
@@ -18,6 +19,20 @@ A change to one domain does not automatically change the others.
 Stable consumer routes use `/api/v1`. Unversioned routes remain temporary compatibility aliases, retain their pre-v1 JSON shapes and are excluded from OpenAPI.
 
 Removing an unversioned alias requires a separately documented breaking change and confirmation that known consumers have migrated. New stable fields and constraints are added to v1 DTOs, not retrofitted into legacy response shapes.
+
+## Published OpenAPI contract
+
+`schemas/openapi.v1.json` is the published machine-readable HTTP API v1 contract. It is generated from FastAPI and Pydantic definitions, committed for review, and checked byte-for-byte by `make verify`. It must never be edited manually.
+
+Pull-request CI compares a candidate artifact with the base branch and classifies changes as compatible, review-required, or breaking. Removing a path, method, operation ID, media type, response, required response field, accepted enum value, or tightening a request constraint is breaking.
+
+A breaking API change requires a new namespace and artifact, for example `/api/v2`, `schemas/openapi.v2.json`, and `contracts/tutorboard/v2`, together with a migration guide. Updating the v1 artifact and fixtures does not make a breaking v1 change acceptable.
+
+## TutorBoard consumer contract
+
+`contracts/tutorboard/v1` contains executable request and response fixtures. Fixture freshness is part of `make verify`, and a pinned TypeScript code-generation smoke proves that a consumer can be generated using only `schemas/openapi.v1.json`.
+
+Generated TypeScript output is not committed. The OpenAPI artifact, pinned generator versions, executable fixtures, and typecheck are the reproducible consumer contract.
 
 ## Canonical writer contract
 
