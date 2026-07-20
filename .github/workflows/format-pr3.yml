@@ -1,0 +1,34 @@
+name: Format PR 3
+
+on:
+  push:
+    branches:
+      - integration/03-canonical-application-pipeline
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/03-canonical-application-pipeline
+      - uses: astral-sh/setup-uv@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --frozen --dev
+      - run: |
+          uv run ruff check --fix .
+          uv run ruff format .
+      - run: rm .github/workflows/format-pr3.yml
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: format canonical application pipeline"
+          git push origin HEAD:integration/03-canonical-application-pipeline
