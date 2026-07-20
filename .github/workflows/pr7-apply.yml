@@ -38,7 +38,8 @@ jobs:
           uv run python scripts/export_tutorboard_contracts.py
 
       - name: Generate npm lock
-        run: npm install --prefix contracts/tutorboard/typescript --package-lock-only --ignore-scripts
+        working-directory: contracts/tutorboard/typescript
+        run: npm install --package-lock-only --ignore-scripts
 
       - name: Format Python
         run: uv run ruff format .
