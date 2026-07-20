@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - integration/02-gir-schema-v02
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
