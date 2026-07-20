@@ -186,9 +186,7 @@ def test_generate_geometry_short_circuits_ambiguity() -> None:
         return_value=AiAdapterResult(
             status="needs_clarification",
             confidence=0.4,
-            ambiguities=[
-                AiAmbiguity(code="missing_angle", message="Choose angle.", options=["A"])
-            ],
+            ambiguities=[AiAmbiguity(code="missing_angle", message="Choose angle.", options=["A"])],
         )
     )
     validator = Mock()
@@ -243,9 +241,7 @@ def test_generate_geometry_renders_normalized_scene_once(
 ) -> None:
     scene = _scene(valid_altitude_payload)
     normalized = scene.model_copy(update={"metadata": {"normalized": True}})
-    adapter = Mock(
-        return_value=AiAdapterResult(status="success", confidence=0.9, gir=scene)
-    )
+    adapter = Mock(return_value=AiAdapterResult(status="success", confidence=0.9, gir=scene))
     validator = Mock(side_effect=[_valid_report(), _valid_report()])
     normalizer = Mock(return_value=normalized)
     svg = Mock(return_value="<svg>ok</svg>")
