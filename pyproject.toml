@@ -27,6 +27,7 @@ packages = [
   "src/gir_core",
   "src/gir_render",
   "src/gir_ai",
+  "src/gir_application",
   "src/gir_api",
   "src/gir_cli",
   "src/gir_benchmarks",

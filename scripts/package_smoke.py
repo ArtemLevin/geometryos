@@ -11,6 +11,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_PACKAGES: tuple[str, ...] = (
     "gir_ai",
+    "gir_application",
     "gir_api",
     "gir_benchmarks",
     "gir_cli",
