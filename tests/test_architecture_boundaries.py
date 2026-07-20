@@ -75,6 +75,7 @@ def test_application_layer_is_transport_agnostic() -> None:
                 "pydantic_settings",
                 "uvicorn",
                 "signal",
+                "contracts",
             ),
         )
 
@@ -93,6 +94,7 @@ def test_core_does_not_depend_on_outer_layers() -> None:
                 "pydantic_settings",
                 "uvicorn",
                 "signal",
+                "contracts",
             ),
         )
 
@@ -110,6 +112,9 @@ def test_api_runtime_boundaries_do_not_import_geometry_implementations() -> None
         "exception_handlers.py",
         "logging.py",
         "middleware.py",
+        "openapi_contract.py",
+        "openapi_examples.py",
+        "openapi_compatibility.py",
         "problem_details.py",
         "readiness.py",
         "settings.py",
@@ -131,3 +136,11 @@ def test_readiness_probe_does_not_execute_geometry_or_network_work() -> None:
             "gir_core.validation.semantic_validator",
         ),
     )
+
+
+def test_openapi_contract_does_not_import_contract_fixtures() -> None:
+    for filename in ("openapi_contract.py", "openapi_examples.py"):
+        _assert_no_forbidden_imports(
+            ROOT / "src/gir_api" / filename,
+            ("contracts", "scripts.export_openapi", "scripts.export_tutorboard_contracts"),
+        )
