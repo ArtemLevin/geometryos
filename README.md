@@ -43,6 +43,8 @@ curl -X POST http://localhost:8000/api/v1/generate \
 
 See `docs/contracts/API_CONTRACT.md` and `docs/adr/ADR-003-stable-http-api-v1.md`.
 
+API resilience adds `X-Request-ID`, operation-specific soft timeouts, sanitized `application/problem+json` failures and structured JSON request logs. Runtime settings use the `GEOMETRYOS_*` environment variables documented in `docs/operations/API_RUNTIME.md`; the architectural decision is recorded in `docs/adr/ADR-004-api-resilience-boundary.md`.
+
 ## Requirements
 
 - Python 3.11 is the canonical local and CI verification version.
