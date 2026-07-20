@@ -4,6 +4,17 @@
 
 The stable TutorBoard-facing contract is exposed under `/api/v1`. GeometryOS remains a GIR-first compiler: HTTP handlers delegate to `gir_application`, and only canonical validated GIR reaches renderers.
 
+## Contract sources
+
+The integration contract is published through four synchronized sources, in this order:
+
+1. FastAPI and Pydantic runtime definitions;
+2. generated and freshness-checked `schemas/openapi.v1.json`;
+3. executable fixtures under `contracts/tutorboard/v1`;
+4. this human-readable document.
+
+`schemas/openapi.v1.json` and the JSON fixtures are generated artifacts and must not be edited manually. `make verify` fails when either artifact set is stale. Pull-request CI additionally checks the candidate OpenAPI against the base branch for backward compatibility.
+
 ## Version domains
 
 | Domain | Value |
@@ -11,6 +22,7 @@ The stable TutorBoard-facing contract is exposed under `/api/v1`. GeometryOS rem
 | HTTP API | `v1` |
 | OpenAPI info version | `1.0.0` |
 | GIR schema | `0.2.0` |
+| TutorBoard contract | `tutorboard/v1` |
 | Python package | `0.1.0` until the release PR |
 
 These versions evolve independently.
@@ -114,7 +126,7 @@ geometryos_v1_render_svg
 geometryos_v1_render_tikz
 ```
 
-Operation IDs are explicit and stable so future TutorBoard clients can be generated predictably.
+Operation IDs are explicit and stable so TutorBoard clients can be generated predictably. Renaming an operation ID is a breaking API v1 change.
 
 ## HTTP status matrix
 
@@ -183,3 +195,18 @@ Infrastructure failures under `/api/v1` use `application/problem+json`. The stab
 | Unexpected internal failure | 500 | `internal_error` |
 
 Successful and domain-result response DTOs remain unchanged. Legacy aliases retain their pre-v1 JSON bodies. Timeouts are soft: the API stops waiting, while an abandoned side-effect-free worker thread may finish later. See `docs/operations/API_RUNTIME.md`.
+
+## Consumer generation and updates
+
+Generate and verify the machine contracts with:
+
+```bash
+uv run python scripts/export_openapi.py
+uv run python scripts/export_openapi.py --check
+uv run python scripts/export_tutorboard_contracts.py
+uv run python scripts/export_tutorboard_contracts.py --check
+make consumer-contract
+make consumer-typescript
+```
+
+Generated TypeScript source is intentionally not committed. The committed OpenAPI artifact, exact npm lock, generated-type compilation smoke, and executable JSON fixtures form the reproducible TutorBoard contract.
