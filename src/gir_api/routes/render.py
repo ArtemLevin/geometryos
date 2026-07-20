@@ -77,3 +77,10 @@ def _render(scene: GirScene, output: OutputFormat) -> RenderGeometryResult:
     if not result.is_valid:
         raise HTTPException(status_code=422, detail=result.validation_report.model_dump())
     return result
+
+
+# Source-level aliases preserve pre-v1 imports for current Python consumers and tests.
+RenderResponse = LegacyRenderResponse
+render_svg_endpoint = render_svg_legacy
+render_tikz_endpoint = render_tikz_legacy
+router = legacy_router
