@@ -27,3 +27,8 @@ def validate_gir_v1(scene: GirScene) -> ValidateGirV1Response:
 )
 def validate_gir_legacy(scene: GirScene) -> ValidationReport:
     return validate_geometry(scene)
+
+
+# Source-level aliases preserve pre-v1 imports for current Python consumers and tests.
+validate_gir = validate_gir_legacy
+router = legacy_router
