@@ -1,17 +1,17 @@
-name: PR 5 refresh lock
+name: PR 5 finalize documentation
 
 on:
   push:
     branches:
       - integration/05-api-resilience
     paths:
-      - pyproject.toml
+      - scripts/finalize_pr5_docs.py
 
 permissions:
   contents: write
 
 jobs:
-  refresh-lock:
+  finalize-docs:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -20,24 +20,18 @@ jobs:
         with:
           ref: integration/05-api-resilience
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - name: Apply documentation updates
+        run: python scripts/finalize_pr5_docs.py
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Refresh lock file
-        run: uv lock
-
-      - name: Commit lock file
+      - name: Remove one-shot files
         run: |
-          if git diff --quiet -- uv.lock; then
-            exit 0
-          fi
+          rm scripts/finalize_pr5_docs.py
+          rm .github/workflows/pr5-refresh-lock.yml
+
+      - name: Commit documentation
+        run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add uv.lock
-          git commit -m 'build: refresh lock for API resilience'
+          git add -A
+          git commit -m 'docs: integrate API resilience guidance'
           git push
