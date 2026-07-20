@@ -70,3 +70,25 @@ Legacy GIR support may be removed only in a separately documented breaking chang
 Stable `/api/v1` infrastructure failures use Problem Details with stable `code` and `request_id` fields. Successful payloads and expected domain results remain governed by the API v1 DTOs. Unversioned aliases preserve their existing JSON bodies, with the additive `X-Request-ID` response header.
 
 Changing a Problem Details code, removing request correlation or changing a published HTTP status requires a documented API compatibility review.
+
+## Operational probe compatibility
+
+`/health` is the existing liveness contract and continues to return HTTP 200 with `{"status":"ok"}` whenever the process can serve HTTP.
+
+`/ready` is an additive readiness contract. It returns the same strict JSON schema for HTTP 200 and 503, uses `status` values `ready` or `not_ready`, and reports named lifecycle, settings and executor checks. Readiness responses are non-cacheable and receive `X-Request-ID`.
+
+Changing either probe path, the `200/503` semantics, the readiness response fields or the stable check names requires an operational compatibility review.
+
+## Container integration contract
+
+Until the release PR, the Docker image is an integration artifact rather than a published versioned release. The following deployment properties are nevertheless protected by review and CI:
+
+- application port `8000`;
+- non-root runtime UID/GID `10001:10001`;
+- exec-form single-process Uvicorn command without reload;
+- `/ready` Docker healthcheck;
+- `SIGTERM` stop signal with a 20-second Uvicorn graceful timeout and 30-second Compose grace period;
+- operation with a read-only root filesystem and tmpfs `/tmp`;
+- loopback-only Compose host binding by default.
+
+Weakening these properties or introducing a new required environment variable requires a documented deployment compatibility review and updated container smoke coverage.
