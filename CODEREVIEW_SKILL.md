@@ -275,7 +275,7 @@ Pydantic v2 используется корректно?
 extra fields запрещены?
 discriminated unions не сломаны?
 constraints имеют id?
-version / scene_type / objects / constraints / construction_steps / metadata сохранены?
+schema_version / scene_type / objects / constraints / construction_steps / metadata сохранены?
 ```
 
 ## 7.2. Schema
