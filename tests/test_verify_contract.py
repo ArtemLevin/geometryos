@@ -74,7 +74,11 @@ def test_main_stops_after_first_failure(monkeypatch: pytest.MonkeyPatch) -> None
         visited.append(check.name)
         return next(results)
 
-    monkeypatch.setattr(verify, "CHECKS", [Check("first", []), Check("second", []), Check("third", [])])
+    monkeypatch.setattr(
+        verify,
+        "CHECKS",
+        [Check("first", []), Check("second", []), Check("third", [])],
+    )
     monkeypatch.setattr(verify, "run_check", fake_run_check)
 
     assert verify.main() == 7
