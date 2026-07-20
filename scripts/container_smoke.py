@@ -145,7 +145,8 @@ def request_json(
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
         body = json.loads(response.read().decode("utf-8"))
-        return response.status, dict(response.headers.items()), body
+        response_headers = {name.lower(): value for name, value in response.headers.items()}
+        return response.status, response_headers, body
 
 
 def wait_for_endpoint(
@@ -217,7 +218,7 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
         )
         if health_body != {"status": "ok"}:
             raise SmokeFailure(f"Unexpected /health body: {health_body!r}")
-        if not health_headers.get("X-Request-ID"):
+        if not health_headers.get("x-request-id"):
             raise SmokeFailure("/health did not return X-Request-ID.")
         print("[PASS] liveness endpoint", flush=True)
 
@@ -227,7 +228,7 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
         )
         if ready_body.get("status") != "ready":
             raise SmokeFailure(f"Unexpected /ready body: {ready_body!r}")
-        if ready_headers.get("Cache-Control") != "no-store":
+        if ready_headers.get("cache-control") != "no-store":
             raise SmokeFailure("/ready must return Cache-Control: no-store.")
         if any(item.get("status") != "pass" for item in ready_body.get("checks", [])):
             raise SmokeFailure(f"Readiness checks did not pass: {ready_body!r}")
@@ -254,7 +255,7 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
             raise SmokeFailure(f"Unexpected generate response: status={status}, body={body!r}")
         if body.get("schema_version") != "0.2.0":
             raise SmokeFailure(f"Unexpected GIR schema version: {body!r}")
-        if response_headers.get("X-Request-ID") != "container-smoke":
+        if response_headers.get("x-request-id") != "container-smoke":
             raise SmokeFailure("Request correlation header was not preserved.")
         print("[PASS] stable API generation and request correlation", flush=True)
 
