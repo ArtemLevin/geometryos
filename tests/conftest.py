@@ -9,6 +9,7 @@ from fastapi import FastAPI
 
 from gir_api.execution import TimedApplicationExecutor
 from gir_api.main import create_app
+from gir_api.readiness import ServiceLifecycle
 from gir_api.settings import ApiSettings
 
 
@@ -18,8 +19,13 @@ def app_factory() -> Callable[..., FastAPI]:
         *,
         settings: ApiSettings | None = None,
         executor: TimedApplicationExecutor | None = None,
+        lifecycle: ServiceLifecycle | None = None,
     ) -> FastAPI:
-        return create_app(settings=settings or ApiSettings(), executor=executor)
+        return create_app(
+            settings=settings or ApiSettings(),
+            executor=executor,
+            lifecycle=lifecycle,
+        )
 
     return factory
 
