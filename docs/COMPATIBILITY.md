@@ -16,6 +16,8 @@ A change to one domain does not automatically change the others.
 
 Every current GeometryOS writer emits only GIR `0.2.0` with the field `schema_version`. Canonical output never contains the legacy field `version`.
 
+The machine-readable contract is published as `schemas/gir-0.2.schema.json`. Consumers must pin this versioned artifact rather than assume that an unversioned schema path always describes the same contract.
+
 ## Legacy reader contract
 
 The reader accepts exactly one legacy marker: `version: "0.1"`. It upgrades that marker to `schema_version: "0.2.0"` before Pydantic structural validation.
