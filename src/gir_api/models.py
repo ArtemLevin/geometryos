@@ -3,6 +3,15 @@ from typing import Annotated, Literal, TypeAlias
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from gir_api.constants import MAX_GENERATE_INPUT_CHARS
+from gir_api.openapi_examples import (
+    GENERATE_CLARIFICATION_EXAMPLE,
+    GENERATE_REQUEST_EXAMPLE,
+    GENERATE_SUCCESS_EXAMPLE,
+    GENERATE_UNSUPPORTED_EXAMPLE,
+    RENDER_SVG_RESPONSE_EXAMPLE,
+    RENDER_TIKZ_RESPONSE_EXAMPLE,
+    VALIDATE_RESPONSE_EXAMPLE,
+)
 from gir_core.models.scene import GirScene
 from gir_core.models.validation import ValidationReport
 
@@ -39,6 +48,8 @@ class ApiAmbiguity(StrictApiModel):
 
 
 class GenerateV1Request(StrictApiModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [GENERATE_REQUEST_EXAMPLE]})
+
     input_type: Literal["text"]
     input: GenerateInput
     output: list[OutputName] = Field(
@@ -57,6 +68,8 @@ class GenerateV1Request(StrictApiModel):
 
 
 class GenerateSuccessResponse(StrictApiModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [GENERATE_SUCCESS_EXAMPLE]})
+
     status: Literal["success"]
     confidence: float = Field(ge=0, le=1)
     schema_version: Literal["0.2.0"] = "0.2.0"
@@ -70,6 +83,10 @@ class GenerateSuccessResponse(StrictApiModel):
 
 
 class GenerateClarificationResponse(StrictApiModel):
+    model_config = ConfigDict(
+        json_schema_extra={"examples": [GENERATE_CLARIFICATION_EXAMPLE]}
+    )
+
     status: Literal["needs_clarification"]
     confidence: float = Field(ge=0, le=1)
     schema_version: Literal["0.2.0"] = "0.2.0"
@@ -83,6 +100,8 @@ class GenerateClarificationResponse(StrictApiModel):
 
 
 class GenerateErrorResponse(StrictApiModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [GENERATE_UNSUPPORTED_EXAMPLE]})
+
     status: Literal["error"]
     confidence: float = Field(ge=0, le=1)
     schema_version: Literal["0.2.0"] = "0.2.0"
@@ -102,18 +121,24 @@ GenerateV1Response: TypeAlias = Annotated[
 
 
 class ValidateGirV1Response(StrictApiModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [VALIDATE_RESPONSE_EXAMPLE]})
+
     schema_version: Literal["0.2.0"] = "0.2.0"
     canonical_gir: GirScene
     validation_report: ValidationReport
 
 
 class RenderSvgV1Response(StrictApiModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [RENDER_SVG_RESPONSE_EXAMPLE]})
+
     schema_version: Literal["0.2.0"] = "0.2.0"
     media_type: Literal["image/svg+xml"] = "image/svg+xml"
     content: str
 
 
 class RenderTikzV1Response(StrictApiModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [RENDER_TIKZ_RESPONSE_EXAMPLE]})
+
     schema_version: Literal["0.2.0"] = "0.2.0"
     media_type: Literal["text/x-tex"] = "text/x-tex"
     content: str
