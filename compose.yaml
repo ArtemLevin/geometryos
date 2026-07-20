@@ -1,0 +1,27 @@
+services:
+  geometryos:
+    build:
+      context: .
+      args:
+        BUILD_REVISION: ${GEOMETRYOS_BUILD_REVISION:-local}
+        BUILD_VERSION: ${GEOMETRYOS_BUILD_VERSION:-0.1.0}
+    image: geometryos:${GEOMETRYOS_IMAGE_TAG:-local}
+    ports:
+      - "127.0.0.1:${GEOMETRYOS_PORT:-8000}:8000"
+    environment:
+      GEOMETRYOS_GENERATE_TIMEOUT_SECONDS: ${GEOMETRYOS_GENERATE_TIMEOUT_SECONDS:-15}
+      GEOMETRYOS_VALIDATE_TIMEOUT_SECONDS: ${GEOMETRYOS_VALIDATE_TIMEOUT_SECONDS:-5}
+      GEOMETRYOS_RENDER_TIMEOUT_SECONDS: ${GEOMETRYOS_RENDER_TIMEOUT_SECONDS:-10}
+      GEOMETRYOS_MAX_INPUT_CHARS: ${GEOMETRYOS_MAX_INPUT_CHARS:-20000}
+      GEOMETRYOS_LOG_LEVEL: ${GEOMETRYOS_LOG_LEVEL:-INFO}
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    stop_grace_period: 30s
+    restart: unless-stopped
