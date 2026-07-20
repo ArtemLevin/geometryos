@@ -1,4 +1,4 @@
-name: Apply PR 7 contract implementation
+name: Generate PR 7 contract artifacts
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  apply:
+  generate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -28,9 +28,6 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Apply source changes
-        run: python scripts/_apply_pr7.py
-
       - name: Install locked Python dependencies
         run: uv sync --frozen --dev
 
@@ -46,12 +43,12 @@ jobs:
         run: uv run ruff format .
 
       - name: Remove temporary automation
-        run: rm -f scripts/_apply_pr7.py .github/pr7-trigger .github/workflows/pr7-apply.yml
+        run: rm -f .github/pr7-trigger .github/workflows/pr7-apply.yml
 
-      - name: Commit implementation
+      - name: Commit generated contract baseline
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "feat: publish OpenAPI v1 and TutorBoard consumer contracts"
+          git commit -m "chore: generate OpenAPI and TutorBoard contract baseline"
           git push origin HEAD:integration/07-openapi-consumer-contract
