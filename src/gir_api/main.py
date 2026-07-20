@@ -54,13 +54,7 @@ def create_app(
         summary="Check process liveness",
         description="Return HTTP 200 while the process can serve HTTP requests.",
         response_model=dict[str, str],
-        responses={
-            200: {
-                "content": {
-                    "application/json": {"example": HEALTH_RESPONSE_EXAMPLE}
-                }
-            }
-        },
+        responses={200: {"content": {"application/json": {"example": HEALTH_RESPONSE_EXAMPLE}}}},
     )
     application.add_api_route(
         "/ready",

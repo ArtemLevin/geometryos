@@ -83,9 +83,7 @@ class GenerateSuccessResponse(StrictApiModel):
 
 
 class GenerateClarificationResponse(StrictApiModel):
-    model_config = ConfigDict(
-        json_schema_extra={"examples": [GENERATE_CLARIFICATION_EXAMPLE]}
-    )
+    model_config = ConfigDict(json_schema_extra={"examples": [GENERATE_CLARIFICATION_EXAMPLE]})
 
     status: Literal["needs_clarification"]
     confidence: float = Field(ge=0, le=1)

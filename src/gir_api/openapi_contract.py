@@ -68,6 +68,4 @@ def write_openapi_artifact(output: Path = OPENAPI_ARTIFACT_PATH) -> Path:
 def check_openapi_artifact(output: Path = OPENAPI_ARTIFACT_PATH) -> bool:
     if not output.exists():
         return False
-    return output.read_text(encoding="utf-8") == canonical_openapi_json(
-        build_openapi_document()
-    )
+    return output.read_text(encoding="utf-8") == canonical_openapi_json(build_openapi_document())

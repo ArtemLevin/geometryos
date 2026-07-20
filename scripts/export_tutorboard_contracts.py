@@ -40,11 +40,7 @@ GENERATE_UNSUPPORTED_REQUEST = {
 GENERATE_INVALID_REQUEST = {**GENERATE_SUCCESS_REQUEST, "mode": "draft"}
 LEGACY_ALTITUDE_GIR = {
     "version": "0.1",
-    **{
-        key: value
-        for key, value in ALTITUDE_GIR_EXAMPLE.items()
-        if key != "schema_version"
-    },
+    **{key: value for key, value in ALTITUDE_GIR_EXAMPLE.items() if key != "schema_version"},
 }
 
 
@@ -55,8 +51,7 @@ def _canonical_json(value: object) -> str:
 def _response_json(response: Any, expected_status: int) -> dict[str, Any]:
     if response.status_code != expected_status:
         raise RuntimeError(
-            f"Unexpected status {response.status_code}, expected {expected_status}: "
-            f"{response.text}"
+            f"Unexpected status {response.status_code}, expected {expected_status}: {response.text}"
         )
     payload = response.json()
     if not isinstance(payload, dict):
@@ -264,9 +259,7 @@ def write_contracts(output: Path = CONTRACT_ROOT) -> None:
 def contracts_are_fresh(output: Path = CONTRACT_ROOT) -> bool:
     for name, document in build_contract_documents().items():
         path = output / name
-        if not path.exists() or path.read_text(encoding="utf-8") != _canonical_json(
-            document
-        ):
+        if not path.exists() or path.read_text(encoding="utf-8") != _canonical_json(document):
             return False
     return True
 

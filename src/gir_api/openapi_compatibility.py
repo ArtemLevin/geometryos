@@ -264,20 +264,12 @@ def _compare_limits(
     for key in stricter_min:
         before = baseline.get(key)
         after = candidate.get(key)
-        if (
-            isinstance(before, (int, float))
-            and isinstance(after, (int, float))
-            and after > before
-        ):
+        if isinstance(before, (int, float)) and isinstance(after, (int, float)) and after > before:
             issues.append(_breaking(location, f"{key} became stricter: {before} -> {after}"))
     for key in stricter_max:
         before = baseline.get(key)
         after = candidate.get(key)
-        if (
-            isinstance(before, (int, float))
-            and isinstance(after, (int, float))
-            and after < before
-        ):
+        if isinstance(before, (int, float)) and isinstance(after, (int, float)) and after < before:
             issues.append(_breaking(location, f"{key} became stricter: {before} -> {after}"))
 
 
@@ -298,7 +290,9 @@ def _compare_compositions(
             issues.append(_breaking(location, f"{keyword} disappeared"))
             continue
         baseline_keys = {_schema_identity(option, baseline_document) for option in baseline_options}
-        candidate_keys = {_schema_identity(option, candidate_document) for option in candidate_options}
+        candidate_keys = {
+            _schema_identity(option, candidate_document) for option in candidate_options
+        }
         for removed in sorted(baseline_keys - candidate_keys):
             issues.append(_breaking(location, f"{keyword} branch removed: {removed}"))
         for added in sorted(candidate_keys - baseline_keys):

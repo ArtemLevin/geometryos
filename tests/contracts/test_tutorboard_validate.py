@@ -3,9 +3,7 @@ from typing import Any
 from gir_api.models import ValidateGirV1Response
 
 
-def test_tutorboard_validate_canonical_and_legacy(
-    client: Any, contract_json: Any
-) -> None:
+def test_tutorboard_validate_canonical_and_legacy(client: Any, contract_json: Any) -> None:
     for name in ("validate-canonical", "validate-legacy"):
         response = client.post(
             "/api/v1/validate-gir",

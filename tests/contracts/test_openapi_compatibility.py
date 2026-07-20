@@ -59,25 +59,25 @@ def _document() -> dict[str, Any]:
     [
         lambda doc: doc["paths"].pop("/items"),
         lambda doc: doc["paths"]["/items"]["post"].update(operationId="renamed"),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["required"].append("mode"),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["properties"]["name"].update(type="integer"),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["properties"]["mode"].update(enum=["a"]),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["properties"]["name"].update(maxLength=50),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["required"].append("mode"),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["properties"]["name"].update(type="integer"),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["properties"]["mode"].update(enum=["a"]),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["properties"]["name"].update(maxLength=50),
         lambda doc: doc["paths"]["/items"]["post"]["responses"].pop("200"),
-        lambda doc: doc["paths"]["/items"]["post"]["responses"]["200"][
-            "content"
-        ].pop("application/json"),
-        lambda doc: doc["paths"]["/items"]["post"]["responses"]["200"][
-            "content"
-        ]["application/json"]["schema"]["required"].clear(),
+        lambda doc: doc["paths"]["/items"]["post"]["responses"]["200"]["content"].pop(
+            "application/json"
+        ),
+        lambda doc: doc["paths"]["/items"]["post"]["responses"]["200"]["content"][
+            "application/json"
+        ]["schema"]["required"].clear(),
     ],
 )
 def test_breaking_changes_are_detected(mutation: Any) -> None:
@@ -91,14 +91,12 @@ def test_breaking_changes_are_detected(mutation: Any) -> None:
 def test_compatible_additions_pass_with_review_signal() -> None:
     baseline = _document()
     candidate = deepcopy(baseline)
-    schema = candidate["paths"]["/items"]["post"]["requestBody"]["content"][
-        "application/json"
-    ]["schema"]
+    schema = candidate["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]
     schema["properties"]["optional"] = {"type": "string"}
     schema["properties"]["mode"]["enum"].append("c")
-    candidate["paths"]["/health"] = {
-        "get": {"operationId": "health", "responses": {"200": {}}}
-    }
+    candidate["paths"]["/health"] = {"get": {"operationId": "health", "responses": {"200": {}}}}
     issues = compare_openapi_documents(baseline, candidate)
     assert not any(item.severity is CompatibilitySeverity.BREAKING for item in issues)
     assert any(item.severity is CompatibilitySeverity.REVIEW for item in issues)
