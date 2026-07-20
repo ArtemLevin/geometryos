@@ -69,9 +69,9 @@ def test_openapi_publishes_readiness_success_and_failure_models() -> None:
 
 def test_openapi_generate_request_constraints_are_published() -> None:
     schema = app.openapi()
-    request_schema = schema["paths"]["/api/v1/generate"]["post"]["requestBody"]["content"][
-        "application/json"
-    ]["schema"]
+    request_schema = schema["paths"]["/api/v1/generate"]["post"]["requestBody"][
+        "content"
+    ]["application/json"]["schema"]
     model = _resolve_schema(request_schema, schema)
     properties = model["properties"]
 
@@ -80,16 +80,16 @@ def test_openapi_generate_request_constraints_are_published() -> None:
     assert properties["input"]["maxLength"] == MAX_GENERATE_INPUT_CHARS
     assert properties["output"]["maxItems"] == 2
     assert properties["output"]["uniqueItems"] is True
-    assert properties["mode"].get("const") == "strict" or properties["mode"].get("enum") == [
-        "strict"
-    ]
+    assert properties["mode"].get("const") == "strict" or properties["mode"].get(
+        "enum"
+    ) == ["strict"]
 
 
 def test_openapi_generate_response_is_discriminated_union() -> None:
     schema = app.openapi()
-    response_schema = schema["paths"]["/api/v1/generate"]["post"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]
+    response_schema = schema["paths"]["/api/v1/generate"]["post"]["responses"][
+        "200"
+    ]["content"]["application/json"]["schema"]
 
     assert "oneOf" in response_schema
     assert response_schema["discriminator"]["propertyName"] == "status"
@@ -107,6 +107,19 @@ def test_openapi_publishes_problem_details_for_runtime_failures() -> None:
         responses = schema["paths"][path]["post"]["responses"]
         for status in statuses:
             assert PROBLEM_MEDIA_TYPE in responses[status]["content"]
+
+
+def test_openapi_publishes_consumer_metadata_and_examples() -> None:
+    schema = app.openapi()
+    assert schema["info"]["x-geometryos-api-major"] == "v1"
+    assert schema["info"]["x-geometryos-gir-schema-version"] == "0.2.0"
+    assert schema["info"]["x-geometryos-consumer-contract"] == "tutorboard/v1"
+    generate = schema["paths"]["/api/v1/generate"]["post"]
+    assert generate["summary"] == "Generate canonical geometry"
+    request_schema = _resolve_schema(
+        generate["requestBody"]["content"]["application/json"]["schema"], schema
+    )
+    assert request_schema["examples"]
 
 
 def test_legacy_aliases_remain_compatible_and_hidden(
