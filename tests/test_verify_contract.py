@@ -16,6 +16,8 @@ EXPECTED_CHECK_NAMES = [
     "mypy",
     "pytest",
     "schema",
+    "openapi",
+    "tutorboard contracts",
     "benchmarks",
     "cli benchmark",
     "cli schema check",
@@ -39,6 +41,13 @@ def test_verify_cli_smoke_uses_explicit_paths() -> None:
         "--check",
         "--output",
         "schemas/gir-0.2.schema.json",
+    ]
+    assert commands["openapi"] == [
+        "uv",
+        "run",
+        "python",
+        "scripts/export_openapi.py",
+        "--check",
     ]
 
 
