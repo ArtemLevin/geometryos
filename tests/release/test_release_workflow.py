@@ -20,9 +20,10 @@ def test_release_workflow_publishes_only_immutable_supported_tags() -> None:
     assert '--tag "${IMAGE}:${VERSION}"' in text
     assert '--tag "${IMAGE}:${MINOR}"' in text
     assert "${IMAGE}:latest" not in text
-    assert ":latest" not in "\n".join(
+    release_commands = "\n".join(
         line for line in text.splitlines() if "runs-on:" not in line
     ).lower()
+    assert ":latest" not in release_commands
     assert "twine" not in text.lower()
     assert "pypi" not in text.lower()
 
