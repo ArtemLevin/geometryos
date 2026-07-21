@@ -70,6 +70,12 @@ def check_version(expected_tag: str | None = None) -> list[str]:
         "Docker BUILD_VERSION",
         errors,
     )
+    make_project_version = _extract(
+        r"^PROJECT_VERSION := (.+)$",
+        ROOT / "Makefile",
+        "Makefile PROJECT_VERSION",
+        errors,
+    )
     make_version = _extract(
         r"^BUILD_VERSION \?= ([^\s]+)$",
         ROOT / "Makefile",
@@ -88,9 +94,20 @@ def check_version(expected_tag: str | None = None) -> list[str]:
         ".env.example BUILD_VERSION",
         errors,
     )
+
+    _expect(
+        "Makefile PROJECT_VERSION",
+        make_project_version,
+        "$(shell $(PYTHON) scripts/print_version.py)",
+        errors,
+    )
+    if make_version not in {service_version, "$(PROJECT_VERSION)"}:
+        errors.append(
+            "Makefile BUILD_VERSION: expected the canonical service version or "
+            f"'$(PROJECT_VERSION)', got {make_version!r}"
+        )
     for label, actual in (
         ("Docker BUILD_VERSION", docker_version),
-        ("Makefile BUILD_VERSION", make_version),
         ("Compose BUILD_VERSION", compose_version),
         (".env.example BUILD_VERSION", env_version),
     ):
