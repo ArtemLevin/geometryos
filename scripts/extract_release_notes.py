@@ -5,7 +5,11 @@ import re
 import sys
 from pathlib import Path
 
-from release_common import CHANGELOG_PATH, project_version
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.release_common import CHANGELOG_PATH, project_version  # noqa: E402
 
 
 def extract_release_notes(version: str, changelog: Path = CHANGELOG_PATH) -> str:

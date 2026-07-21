@@ -6,14 +6,19 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import zipfile
 from email.parser import Parser
 from pathlib import Path
 
-from generate_python_sbom import generate_sbom
-from release_common import (
+ROOT_PATH = Path(__file__).resolve().parents[1]
+if str(ROOT_PATH) not in sys.path:
+    sys.path.insert(0, str(ROOT_PATH))
+
+from scripts.generate_python_sbom import generate_sbom  # noqa: E402
+from scripts.release_common import (  # noqa: E402
     CONTRACT_ROOT,
     GIR_SCHEMA_PATH,
     OPENAPI_PATH,

@@ -4,7 +4,15 @@ import argparse
 import sys
 from pathlib import Path
 
-from release_common import RELEASE_MANIFEST_PATH, canonical_json, release_manifest
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.release_common import (  # noqa: E402
+    RELEASE_MANIFEST_PATH,
+    canonical_json,
+    release_manifest,
+)
 
 
 def write_release_manifest(output: Path = RELEASE_MANIFEST_PATH) -> Path:

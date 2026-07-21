@@ -13,17 +13,6 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from release_common import (  # noqa: E402
-    CHANGELOG_PATH,
-    OPENAPI_PATH,
-    RELEASE_MANIFEST_PATH,
-    canonical_json,
-    project_name,
-    project_version,
-    release_manifest,
-    release_tag,
-)
-
 from gir_api.constants import API_V1_VERSION  # noqa: E402
 from gir_meta import (  # noqa: E402
     API_MAJOR,
@@ -32,6 +21,16 @@ from gir_meta import (  # noqa: E402
     GIR_SCHEMA_VERSION,
     SERVICE_VERSION,
     TUTORBOARD_CONTRACT,
+)
+from scripts.release_common import (  # noqa: E402
+    CHANGELOG_PATH,
+    OPENAPI_PATH,
+    RELEASE_MANIFEST_PATH,
+    canonical_json,
+    project_name,
+    project_version,
+    release_manifest,
+    release_tag,
 )
 
 

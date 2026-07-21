@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import tarfile
 from pathlib import Path
 
-from release_common import (
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.release_common import (  # noqa: E402
     canonical_json,
     project_version,
     release_bundle_dir,
