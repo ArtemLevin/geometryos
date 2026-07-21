@@ -4,7 +4,8 @@ import argparse
 import json
 import re
 import sys
-from importlib.metadata import PackageNotFoundError, version as installed_version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as installed_version
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,15 +13,6 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from gir_api.constants import API_V1_VERSION  # noqa: E402
-from gir_meta import (  # noqa: E402
-    API_MAJOR,
-    API_VERSION,
-    DISTRIBUTION_NAME,
-    GIR_SCHEMA_VERSION,
-    SERVICE_VERSION,
-    TUTORBOARD_CONTRACT,
-)
 from release_common import (  # noqa: E402
     CHANGELOG_PATH,
     OPENAPI_PATH,
@@ -30,6 +22,16 @@ from release_common import (  # noqa: E402
     project_version,
     release_manifest,
     release_tag,
+)
+
+from gir_api.constants import API_V1_VERSION  # noqa: E402
+from gir_meta import (  # noqa: E402
+    API_MAJOR,
+    API_VERSION,
+    DISTRIBUTION_NAME,
+    GIR_SCHEMA_VERSION,
+    SERVICE_VERSION,
+    TUTORBOARD_CONTRACT,
 )
 
 

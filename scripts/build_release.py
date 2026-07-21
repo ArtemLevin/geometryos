@@ -128,21 +128,23 @@ def rebuild_wheel_from_sdist(sdist: Path, temporary: Path, version: str) -> None
 
 def add_contract_archive(output: Path) -> Path:
     archive_path = output / "tutorboard-v1-contracts.tar.gz"
-    with archive_path.open("wb") as raw:
-        with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed:
-            with tarfile.open(fileobj=compressed, mode="w") as archive:
-                for path in sorted(CONTRACT_ROOT.rglob("*")):
-                    if not path.is_file():
-                        continue
-                    relative = Path("tutorboard") / "v1" / path.relative_to(CONTRACT_ROOT)
-                    info = archive.gettarinfo(str(path), arcname=relative.as_posix())
-                    info.uid = 0
-                    info.gid = 0
-                    info.uname = ""
-                    info.gname = ""
-                    info.mtime = 0
-                    with path.open("rb") as source:
-                        archive.addfile(info, source)
+    with (
+        archive_path.open("wb") as raw,
+        gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed,
+        tarfile.open(fileobj=compressed, mode="w") as archive,
+    ):
+        for path in sorted(CONTRACT_ROOT.rglob("*")):
+            if not path.is_file():
+                continue
+            relative = Path("tutorboard") / "v1" / path.relative_to(CONTRACT_ROOT)
+            info = archive.gettarinfo(str(path), arcname=relative.as_posix())
+            info.uid = 0
+            info.gid = 0
+            info.uname = ""
+            info.gname = ""
+            info.mtime = 0
+            with path.open("rb") as source:
+                archive.addfile(info, source)
     return archive_path
 
 
