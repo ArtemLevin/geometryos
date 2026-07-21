@@ -11,12 +11,14 @@ from fastapi.openapi.utils import get_openapi
 from gir_api.constants import API_V1_VERSION
 from gir_api.problem_details import ProblemDetail
 from gir_api.settings import ApiSettings
+from gir_meta import SERVICE_VERSION
 
 OPENAPI_ARTIFACT_PATH = Path("schemas/openapi.v1.json")
 OPENAPI_EXTENSIONS: dict[str, str] = {
     "x-geometryos-api-major": "v1",
     "x-geometryos-gir-schema-version": "0.2.0",
     "x-geometryos-consumer-contract": "tutorboard/v1",
+    "x-geometryos-service-version": SERVICE_VERSION,
 }
 
 
@@ -62,6 +64,8 @@ def build_openapi_document() -> dict[str, Any]:
     document = deepcopy(application.openapi())
     if document["info"]["version"] != API_V1_VERSION:
         raise RuntimeError("OpenAPI API version diverged from API_V1_VERSION.")
+    if document["info"].get("x-geometryos-service-version") != SERVICE_VERSION:
+        raise RuntimeError("OpenAPI service version diverged from installed package metadata.")
     return document
 
 

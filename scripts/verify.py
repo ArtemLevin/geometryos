@@ -25,6 +25,14 @@ CHECKS: list[Check] = [
         "tutorboard contracts",
         ["uv", "run", "python", "scripts/export_tutorboard_contracts.py", "--check"],
     ),
+    Check(
+        "release manifest",
+        ["uv", "run", "python", "scripts/export_release_manifest.py", "--check"],
+    ),
+    Check(
+        "release version",
+        ["uv", "run", "python", "scripts/check_release_version.py"],
+    ),
     Check("benchmarks", ["uv", "run", "python", "scripts/run_benchmarks.py"]),
     Check("cli benchmark", ["uv", "run", "gir", "benchmark", "--root", "."]),
     Check(

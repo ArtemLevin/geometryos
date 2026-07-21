@@ -4,7 +4,7 @@ services:
       context: .
       args:
         BUILD_REVISION: ${GEOMETRYOS_BUILD_REVISION:-local}
-        BUILD_VERSION: ${GEOMETRYOS_BUILD_VERSION:-0.1.0}
+        BUILD_VERSION: ${GEOMETRYOS_BUILD_VERSION:-0.2.0}
     image: geometryos:${GEOMETRYOS_IMAGE_TAG:-local}
     ports:
       - "127.0.0.1:${GEOMETRYOS_PORT:-8000}:8000"

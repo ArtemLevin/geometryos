@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 from typing import Annotated
@@ -13,8 +15,30 @@ from gir_application import (
 from gir_benchmarks.runner import run_benchmarks
 from gir_core.models.scene import GirScene
 from gir_core.schema import check_gir_schema, write_gir_schema
+from gir_meta import SERVICE_NAME, SERVICE_VERSION
 
-app = typer.Typer(help="GIR Geometry Compiler CLI")
+app = typer.Typer(help="GIR Geometry Compiler CLI", no_args_is_help=True)
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"{SERVICE_NAME} {SERVICE_VERSION}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=_version_callback,
+            is_eager=True,
+            help="Show the installed GeometryOS version and exit.",
+        ),
+    ] = False,
+) -> None:
+    del version
 
 
 def _load_scene(path: Path) -> GirScene:

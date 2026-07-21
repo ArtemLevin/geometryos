@@ -22,7 +22,7 @@ RUN uv sync --frozen --no-dev --no-editable
 FROM ${PYTHON_IMAGE} AS runtime
 
 ARG BUILD_REVISION=unknown
-ARG BUILD_VERSION=0.1.0
+ARG BUILD_VERSION=0.2.0
 
 LABEL org.opencontainers.image.title="GeometryOS" \
       org.opencontainers.image.description="GIR-first geometry compiler service" \

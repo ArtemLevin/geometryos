@@ -18,3 +18,7 @@ npm run --prefix contracts/tutorboard/typescript typecheck
 ```
 
 Generated TypeScript types are intentionally not committed. The OpenAPI artifact, exact generator versions, and compilation smoke are the reproducible contract.
+
+## Release binding
+
+    GeometryOS `0.2.0` ships this unchanged `tutorboard/v1` contract together with `schemas/openapi.v1.json` in the GitHub Release bundle. Consumers should pin the release asset or container digest; the contract version does not implicitly follow the service SemVer.

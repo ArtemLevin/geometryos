@@ -1,0 +1,32 @@
+{
+  "api": {
+    "namespace": "v1",
+    "version": "1.0.0"
+  },
+  "artifacts": [
+    "wheel",
+    "source-distribution",
+    "openapi",
+    "gir-schema",
+    "tutorboard-contracts",
+    "checksums",
+    "cyclonedx-sbom"
+  ],
+  "container": {
+    "image": "ghcr.io/artemlevin/geometryos",
+    "platforms": [
+      "linux/amd64"
+    ],
+    "registry": "ghcr.io"
+  },
+  "distribution": "gir",
+  "gir_schema_version": "0.2.0",
+  "python": {
+    "minimum": "3.11",
+    "verified": "3.11"
+  },
+  "service": "GeometryOS",
+  "tag": "v0.2.0",
+  "tutorboard_contract": "tutorboard/v1",
+  "version": "0.2.0"
+}

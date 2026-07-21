@@ -1,6 +1,6 @@
-# GIR — Geometry Intermediate Representation
+# GeometryOS 0.2.0
 
-GIR is a Python-first geometry compiler skeleton. Text is converted into draft GIR, validated, normalized, laid out through the canonical MVP layout, and rendered to SVG or TikZ. The LLM is never the source of truth: GIR is.
+GeometryOS is a GIR-first geometry compiler service. Text is converted into draft GIR, validated, normalized, laid out through the canonical MVP layout, and rendered to SVG or TikZ. The LLM is never the source of truth: GIR is.
 
 ## Architecture
 
@@ -58,6 +58,18 @@ make consumer-typescript
 
 See `contracts/tutorboard/v1/README.md` and `docs/adr/ADR-006-published-openapi-and-consumer-contract.md`.
 
+## GeometryOS 0.2.0 release
+
+The service/package version is `0.2.0`; HTTP API v1 remains `1.0.0`, GIR remains `0.2.0`, and the TutorBoard contract remains `tutorboard/v1`. Release assets include wheel, source distribution, schemas, executable contracts, SHA-256 checksums and a CycloneDX SBOM. The hardened image is published to `ghcr.io/artemlevin/geometryos` under immutable `0.2.0` and commit-SHA tags; no mutable `latest` tag is produced.
+
+```bash
+gir --version
+make version-check
+make release-all
+```
+
+See `CHANGELOG.md`, `docs/INTEGRATION_GUIDE.md`, `docs/ERROR_MODEL.md`, `docs/RELEASE_PROCESS.md` and `docs/adr/ADR-007-versioning-and-release-publication.md`.
+
 ## Requirements
 
 - Python 3.11 is the canonical local and CI verification version.
@@ -99,6 +111,7 @@ uv run python scripts/package_smoke.py
 - `pytest`, including API, CLI and source import smoke tests;
 - GIR schema freshness checks;
 - OpenAPI v1 and TutorBoard fixture freshness checks;
+- release manifest freshness and version consistency checks;
 - benchmark suites;
 - CLI benchmark and schema smoke checks.
 
@@ -137,7 +150,8 @@ The package smoke test:
 4. runs `uv pip check`;
 5. imports all public packages from the installed distribution;
 6. verifies installed package metadata;
-7. starts the installed `gir --help` console entrypoint.
+7. starts the installed `gir --help` console entrypoint;
+8. verifies the exact installed `gir --version` output.
 
 Temporary artifacts are removed automatically.
 
@@ -208,6 +222,12 @@ make schema-check
 make openapi-check
 make consumer-contract
 make consumer-typescript
+make version-check
+make release-manifest-check
+make dependency-audit
+make release-build
+make release-smoke
+make release-all
 make api
 make api-prod
 make container-build
@@ -246,6 +266,7 @@ Ambiguous requests are first-class domain responses, not server errors. For exam
 ## CLI
 
 ```bash
+gir --version
 gir validate benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir render-svg benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
 gir render-tikz benchmarks/text_to_gir/altitude/altitude_001.expected.gir.json
@@ -277,14 +298,15 @@ make api-prod
 
 ## Continuous integration
 
-GitHub Actions runs four gated jobs on pushes and pull requests:
+GitHub Actions runs five gated jobs on pushes and pull requests:
 
 - `verify` installs dependencies from `uv.lock`, runs `make verify`, and checks OpenAPI compatibility with the base branch;
 - `package-smoke` independently builds and installs the wheel with `make package-smoke`;
 - `consumer-contract` executes TutorBoard fixtures, generates TypeScript types, and type-checks the smoke client;
-- `container-smoke` validates Compose, builds the hardened image and checks runtime security, probes, stable API behavior and graceful shutdown.
+- `container-smoke` validates Compose, builds the hardened image and checks runtime security, probes, stable API behavior and graceful shutdown;
+- `release-dry-run` audits the frozen runtime graph, builds wheel and sdist, rebuilds from sdist, generates checksums/SBOM, smoke-tests the bundle and uploads a non-published candidate artifact.
 
-All jobs use Python 3.11, frozen dependency installation, read-only repository permissions and explicit timeouts. Pull-request CI builds but does not publish container images.
+All pull-request jobs use frozen dependency installation, read-only repository permissions and explicit timeouts. Publication occurs only from a matching immutable Git tag through `.github/workflows/release.yml`.
 
 ## MVP
 
