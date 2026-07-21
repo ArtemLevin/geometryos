@@ -10,6 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_PACKAGES: tuple[str, ...] = (
+    "gir_meta",
     "gir_ai",
     "gir_application",
     "gir_api",
@@ -73,12 +74,24 @@ def run_step(
     *,
     cwd: Path,
     env: dict[str, str] | None = None,
+    expected_output: str | None = None,
 ) -> None:
     print(f"\n==> {name}", flush=True)
     print("$ " + " ".join(command), flush=True)
-    completed = subprocess.run(command, cwd=cwd, env=env, check=False)
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        env=env,
+        check=False,
+        capture_output=expected_output is not None,
+        text=expected_output is not None,
+    )
     if completed.returncode != 0:
         raise RuntimeError(f"{name} failed with exit code {completed.returncode}.")
+    if expected_output is not None and completed.stdout.strip() != expected_output:
+        raise RuntimeError(
+            f"{name} output mismatch: {completed.stdout.strip()!r} != {expected_output!r}"
+        )
     print(f"[PASS] {name}", flush=True)
 
 
@@ -124,11 +137,14 @@ def main() -> int:
                 cwd=temp_root,
                 env=clean_env,
             )
+            cli = venv_cli(venv_dir, "gir").as_posix()
+            run_step("installed CLI", [cli, "--help"], cwd=temp_root, env=clean_env)
             run_step(
-                "installed CLI",
-                [venv_cli(venv_dir, "gir").as_posix(), "--help"],
+                "installed CLI version",
+                [cli, "--version"],
                 cwd=temp_root,
                 env=clean_env,
+                expected_output=f"GeometryOS {project_version}",
             )
     except (OSError, RuntimeError, KeyError, tomllib.TOMLDecodeError) as exc:
         print(f"\n[FAIL] package smoke: {exc}", flush=True)
