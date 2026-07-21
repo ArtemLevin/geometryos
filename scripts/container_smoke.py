@@ -13,7 +13,7 @@ from typing import Any
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_VERSION = "0.1.0"
+DEFAULT_VERSION = "0.2.0"
 
 
 class SmokeFailure(RuntimeError):
