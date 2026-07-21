@@ -144,8 +144,57 @@ jobs:
         run: docker compose config --quiet
 
       - name: Build and smoke-test image
-        run: >-
-          uv run python scripts/container_smoke.py
-          --image geometryos:${GITHUB_SHA}
-          --revision ${GITHUB_SHA}
-          --version 0.1.0
+        run: |
+          VERSION=$(uv run python scripts/print_version.py)
+          uv run python scripts/container_smoke.py \
+            --image geometryos:${GITHUB_SHA} \
+            --revision ${GITHUB_SHA} \
+            --version "${VERSION}"
+
+  release-dry-run:
+    needs:
+      - verify
+      - package-smoke
+      - consumer-contract
+      - container-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install locked dependencies
+        run: uv sync --frozen --dev
+
+      - name: Check release version and manifest
+        run: |
+          make version-check
+          make release-manifest-check
+
+      - name: Audit locked runtime dependencies
+        run: make dependency-audit
+
+      - name: Build release candidate bundle
+        run: make release-build
+
+      - name: Smoke-test release candidate bundle
+        run: make release-smoke
+
+      - name: Upload release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: geometryos-release-candidate-${{ github.sha }}
+          path: dist/release/0.2.0/
+          if-no-files-found: error
+          retention-days: 14
