@@ -23,9 +23,9 @@ The integration contract is published through four synchronized sources, in this
 | OpenAPI info version | `1.0.0` |
 | GIR schema | `0.2.0` |
 | TutorBoard contract | `tutorboard/v1` |
-| Python package | `0.1.0` until the release PR |
+| GeometryOS service/package | `0.2.0` |
 
-These versions evolve independently.
+These versions evolve independently. OpenAPI additionally publishes `x-geometryos-service-version: 0.2.0`; changing the service version does not rename API v1 or alter GIR `0.2.0`.
 
 ## Stable endpoints
 

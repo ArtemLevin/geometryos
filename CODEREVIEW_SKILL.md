@@ -635,3 +635,16 @@ make verify
 - Confirm timeout logic exists only in `gir_api.execution` and does not enter `gir_core` or `gir_application`.
 - Confirm logs contain metadata only: never prompts, GIR, rendered output, secrets or exception messages.
 - Confirm successful API v1 response DTOs, GIR schema artifacts and render benchmarks remain unchanged.
+
+# Release review addendum
+
+    For a release PR additionally verify:
+
+    - `pyproject.toml`, CLI, OpenAPI service metadata, Docker/Compose defaults, changelog and release manifest agree on the service version;
+    - API v1, GIR `0.2.0` and TutorBoard v1 remain independently versioned;
+    - wheel and sdist are both built, and the wheel is reproducible from the sdist;
+    - the release bundle contains only expected versioned assets, valid checksums and a CycloneDX SBOM;
+    - PR CI performs a non-publishing release dry-run;
+    - tag publication tests the GHCR digest before SemVer promotion;
+    - full SemVer tags are immutable and no `latest` or PyPI publication is introduced implicitly;
+    - rollback and release-withdrawal procedures are documented.

@@ -5,7 +5,7 @@ import json
 import subprocess
 from pathlib import Path
 
-SBOM_PROGRAM = r'''
+SBOM_PROGRAM = r"""
 import importlib.metadata
 import json
 import re
@@ -80,7 +80,7 @@ document = {
     "version": 1,
 }
 print(json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True))
-'''
+"""
 
 
 def generate_sbom(python: Path, output: Path) -> Path:
@@ -92,12 +92,16 @@ def generate_sbom(python: Path, output: Path) -> Path:
     )
     document = json.loads(completed.stdout)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return output
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate a CycloneDX SBOM from a Python environment.")
+    parser = argparse.ArgumentParser(
+        description="Generate a CycloneDX SBOM from a Python environment."
+    )
     parser.add_argument("--python", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()

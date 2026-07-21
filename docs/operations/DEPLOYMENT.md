@@ -4,7 +4,7 @@
 
 GeometryOS ships one hardened single-process container for local integration and deployment validation. The image exposes the stable HTTP API on port `8000`, preserves the request-correlation and Problem Details contracts, and separates process liveness from application readiness.
 
-This deployment does not include TLS, a reverse proxy, authentication, rate limiting, Kubernetes resources, metrics, tracing or registry publication.
+This deployment does not include TLS, a reverse proxy, authentication, rate limiting, Kubernetes resources, metrics or tracing. GeometryOS `0.2.0` is published to GHCR after tag verification and registry smoke.
 
 ## Prerequisites
 
@@ -42,7 +42,7 @@ Equivalent command:
 docker build \
   --tag geometryos:local \
   --build-arg BUILD_REVISION="$(git rev-parse HEAD)" \
-  --build-arg BUILD_VERSION=0.1.0 \
+  --build-arg BUILD_VERSION=0.2.0 \
   .
 ```
 
@@ -54,7 +54,7 @@ $revision = git rev-parse HEAD
 docker build `
   --tag geometryos:local `
   --build-arg "BUILD_REVISION=$revision" `
-  --build-arg "BUILD_VERSION=0.1.0" `
+  --build-arg "BUILD_VERSION=0.2.0" `
   .
 ```
 
@@ -130,7 +130,7 @@ Copy `.env.example` to `.env` only for local overrides. Never commit `.env` or s
 | `GEOMETRYOS_PORT` | `8000` | Host-side Compose port bound to loopback |
 | `GEOMETRYOS_IMAGE_TAG` | `local` | Local Compose image tag |
 | `GEOMETRYOS_BUILD_REVISION` | `local` | OCI revision label |
-| `GEOMETRYOS_BUILD_VERSION` | `0.1.0` | OCI version label |
+| `GEOMETRYOS_BUILD_VERSION` | `0.2.0` | OCI version label |
 | `GEOMETRYOS_GENERATE_TIMEOUT_SECONDS` | `15` | Generate soft deadline |
 | `GEOMETRYOS_VALIDATE_TIMEOUT_SECONDS` | `5` | Validation soft deadline |
 | `GEOMETRYOS_RENDER_TIMEOUT_SECONDS` | `10` | Render soft deadline |
@@ -326,7 +326,13 @@ docker compose up --build --detach
 
 - one Uvicorn worker per container;
 - no TLS or reverse proxy;
-- no registry publication or signed image;
+- the first published image target is `linux/amd64`;
 - no Kubernetes manifests;
 - no Prometheus metrics or distributed tracing;
 - soft application-operation timeouts cannot forcibly terminate an already running Python worker thread.
+
+## Published release image
+
+    GeometryOS `0.2.0` is published as `ghcr.io/artemlevin/geometryos:0.2.0` and `sha-<commit>`. Production deployments should pin `ghcr.io/artemlevin/geometryos@sha256:<digest>`. The workflow tests the registry digest before assigning SemVer aliases and does not publish `latest`.
+
+    Release and rollback details are documented in `docs/RELEASE_PROCESS.md`.

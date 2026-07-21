@@ -6,7 +6,7 @@ GeometryOS maintains independent version domains:
 
 | Domain | Current value in this phase | Meaning |
 |---|---|---|
-| Python package | `0.1.0` | Distribution version until the release PR |
+| GeometryOS service/package | `0.2.0` | Semantic version of the release distribution |
 | HTTP API | `v1` | Stable TutorBoard-facing HTTP contract |
 | OpenAPI info | `1.0.0` | Version of the v1 HTTP schema |
 | GIR schema | `0.2.0` | Mathematical data contract |
@@ -96,7 +96,7 @@ Changing either probe path, the `200/503` semantics, the readiness response fiel
 
 ## Container integration contract
 
-Until the release PR, the Docker image is an integration artifact rather than a published versioned release. The following deployment properties are nevertheless protected by review and CI:
+GeometryOS `0.2.0` publishes a versioned GHCR image. The full SemVer tag and Git tag are immutable; deployments should prefer the image digest. The following deployment properties are protected by review and CI:
 
 - application port `8000`;
 - non-root runtime UID/GID `10001:10001`;
@@ -107,3 +107,9 @@ Until the release PR, the Docker image is an integration artifact rather than a 
 - loopback-only Compose host binding by default.
 
 Weakening these properties or introducing a new required environment variable requires a documented deployment compatibility review and updated container smoke coverage.
+
+## Release artifact compatibility
+
+    GeometryOS service releases follow Semantic Versioning independently from API, GIR and TutorBoard contracts. `pyproject.toml` is the canonical service-version source; `release/manifest.json`, OpenAPI service metadata, OCI labels, CLI output and release filenames must match it.
+
+    Versioned Git tags, GitHub Release assets and full SemVer container tags are immutable. A defective release is replaced by a patch release, never rewritten. The compatible minor image tag may advance only after the patch digest passes the complete registry smoke and release gates.

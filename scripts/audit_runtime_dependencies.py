@@ -11,7 +11,9 @@ def run(command: list[str]) -> None:
     print("$ " + " ".join(command), flush=True)
     completed = subprocess.run(command, cwd=ROOT, check=False)
     if completed.returncode != 0:
-        raise RuntimeError(f"Command failed with exit code {completed.returncode}: {' '.join(command)}")
+        raise RuntimeError(
+            f"Command failed with exit code {completed.returncode}: {' '.join(command)}"
+        )
 
 
 def main() -> int:

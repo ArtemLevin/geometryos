@@ -24,7 +24,9 @@ def extract_release_notes(version: str, changelog: Path = CHANGELOG_PATH) -> str
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Extract GeometryOS release notes from CHANGELOG.md.")
+    parser = argparse.ArgumentParser(
+        description="Extract GeometryOS release notes from CHANGELOG.md."
+    )
     parser.add_argument("--version", default=project_version())
     parser.add_argument("--changelog", type=Path, default=CHANGELOG_PATH)
     parser.add_argument("--output", type=Path)

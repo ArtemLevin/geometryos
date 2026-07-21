@@ -64,7 +64,9 @@ def venv_cli(venv: Path) -> Path:
 
 def verify_wheel_metadata(wheel: Path, version: str) -> None:
     with zipfile.ZipFile(wheel) as archive:
-        metadata_paths = [name for name in archive.namelist() if name.endswith(".dist-info/METADATA")]
+        metadata_paths = [
+            name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+        ]
         if len(metadata_paths) != 1:
             raise RuntimeError(f"Expected one wheel METADATA file, found {len(metadata_paths)}")
         metadata = Parser().parsestr(archive.read(metadata_paths[0]).decode("utf-8"))
@@ -113,7 +115,11 @@ def rebuild_wheel_from_sdist(sdist: Path, temporary: Path, version: str) -> None
         raise RuntimeError(f"Expected one source-distribution root, found {len(roots)}")
     rebuilt = temporary / "rebuilt"
     rebuilt.mkdir()
-    run("rebuild wheel from source distribution", ["uv", "build", "--wheel", "--out-dir", str(rebuilt)], cwd=roots[0])
+    run(
+        "rebuild wheel from source distribution",
+        ["uv", "build", "--wheel", "--out-dir", str(rebuilt)],
+        cwd=roots[0],
+    )
     wheels = list(rebuilt.glob("*.whl"))
     if len(wheels) != 1 or wheels[0].name != wheel_filename(version):
         raise RuntimeError("Source distribution did not reproduce the expected wheel filename")
