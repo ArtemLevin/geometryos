@@ -10,17 +10,20 @@ PORT ?= 8000
 IMAGE ?= geometryos
 IMAGE_TAG ?= local
 CONTAINER_IMAGE := $(IMAGE):$(IMAGE_TAG)
+PROJECT_VERSION := $(shell $(PYTHON) scripts/print_version.py)
+RELEASE_TAG ?= v$(PROJECT_VERSION)
 BUILD_REVISION ?= $(shell git rev-parse HEAD 2>/dev/null || echo local)
-BUILD_VERSION ?= 0.1.0
+BUILD_VERSION ?= $(PROJECT_VERSION)
 
 .PHONY: help sync install lock lock-upgrade test lint format format-check typecheck schema schema-check \
 	openapi openapi-check consumer-contract consumer-typescript benchmarks verify package-smoke \
 	verify-all check api api-prod validate render-svg render-tikz cli-benchmark cli-export-schema \
 	cli-schema-check container-build container-smoke compose-config compose-up compose-down \
-	compose-logs clean py-compile
+	compose-logs version version-check release-manifest release-manifest-check dependency-audit \
+	release-build release-smoke release-check release-all clean py-compile
 
 help: ## Show available Make targets.
-	@awk 'BEGIN {FS = ":.*##"; printf "GIR developer commands:\n\n"} /^[a-zA-Z0-9_-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "GIR developer commands:\n\n"} /^[a-zA-Z0-9_-]+:.*##/ {printf "  %-24s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 sync: ## Install locked runtime and dev dependencies with uv.
 	$(UV) sync --frozen --dev
@@ -122,6 +125,31 @@ compose-down: ## Stop Compose services and remove orphan containers.
 
 compose-logs: ## Follow GeometryOS Compose logs.
 	docker compose logs --follow geometryos
+
+version: ## Print the canonical GeometryOS service version.
+	@$(PYTHON) scripts/print_version.py
+
+version-check: ## Check all release-version sources for consistency.
+	$(UV_RUN) $(PYTHON) scripts/check_release_version.py
+
+release-manifest: ## Export release/manifest.json.
+	$(UV_RUN) $(PYTHON) scripts/export_release_manifest.py
+
+release-manifest-check: ## Check that release/manifest.json is current.
+	$(UV_RUN) $(PYTHON) scripts/export_release_manifest.py --check
+
+dependency-audit: ## Audit the frozen runtime dependency graph.
+	$(UV_RUN) $(PYTHON) scripts/audit_runtime_dependencies.py
+
+release-build: ## Build the validated release bundle under dist/release/.
+	$(UV_RUN) $(PYTHON) scripts/build_release.py
+
+release-smoke: ## Validate the complete release bundle.
+	$(UV_RUN) $(PYTHON) scripts/release_smoke.py
+
+release-check: verify package-smoke consumer-contract consumer-typescript container-smoke version-check release-manifest-check ## Run every pre-release gate without publishing.
+
+release-all: release-check dependency-audit release-build release-smoke ## Build and verify the complete release candidate.
 
 py-compile: ## Syntax-check Python files without importing third-party dependencies.
 	$(PYTHON) -m py_compile $$(find src scripts tests -name '*.py' -not -path '*/.venv/*')
