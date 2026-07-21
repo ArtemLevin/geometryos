@@ -109,6 +109,19 @@ def test_openapi_publishes_problem_details_for_runtime_failures() -> None:
             assert PROBLEM_MEDIA_TYPE in responses[status]["content"]
 
 
+def test_openapi_publishes_consumer_metadata_and_examples() -> None:
+    schema = app.openapi()
+    assert schema["info"]["x-geometryos-api-major"] == "v1"
+    assert schema["info"]["x-geometryos-gir-schema-version"] == "0.2.0"
+    assert schema["info"]["x-geometryos-consumer-contract"] == "tutorboard/v1"
+    generate = schema["paths"]["/api/v1/generate"]["post"]
+    assert generate["summary"] == "Generate canonical geometry"
+    request_schema = _resolve_schema(
+        generate["requestBody"]["content"]["application/json"]["schema"], schema
+    )
+    assert request_schema["examples"]
+
+
 def test_legacy_aliases_remain_compatible_and_hidden(
     client: Any,
     valid_altitude_payload: dict[str, Any],

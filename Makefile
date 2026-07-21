@@ -14,9 +14,10 @@ BUILD_REVISION ?= $(shell git rev-parse HEAD 2>/dev/null || echo local)
 BUILD_VERSION ?= 0.1.0
 
 .PHONY: help sync install lock lock-upgrade test lint format format-check typecheck schema schema-check \
-	benchmarks verify package-smoke verify-all check api api-prod validate render-svg render-tikz \
-	cli-benchmark cli-export-schema cli-schema-check container-build container-smoke compose-config \
-	compose-up compose-down compose-logs clean py-compile
+	openapi openapi-check consumer-contract consumer-typescript benchmarks verify package-smoke \
+	verify-all check api api-prod validate render-svg render-tikz cli-benchmark cli-export-schema \
+	cli-schema-check container-build container-smoke compose-config compose-up compose-down \
+	compose-logs clean py-compile
 
 help: ## Show available Make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "GIR developer commands:\n\n"} /^[a-zA-Z0-9_-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -53,6 +54,20 @@ schema: ## Export GIR JSON Schema to schemas/gir-0.2.schema.json.
 schema-check: ## Check that committed GIR JSON Schema is up to date.
 	$(UV_RUN) $(PYTHON) scripts/export_schema.py --check
 
+openapi: ## Export the canonical OpenAPI v1 artifact.
+	$(UV_RUN) $(PYTHON) scripts/export_openapi.py
+
+openapi-check: ## Check that committed OpenAPI v1 is up to date.
+	$(UV_RUN) $(PYTHON) scripts/export_openapi.py --check
+
+consumer-contract: ## Run TutorBoard Python consumer contract tests.
+	$(UV_RUN) pytest tests/contracts
+
+consumer-typescript: ## Generate and type-check TutorBoard TypeScript contract types.
+	npm ci --prefix contracts/tutorboard/typescript
+	npm run --prefix contracts/tutorboard/typescript generate
+	npm run --prefix contracts/tutorboard/typescript typecheck
+
 benchmarks: ## Run all benchmark suites.
 	$(UV_RUN) $(PYTHON) scripts/run_benchmarks.py
 
@@ -64,7 +79,7 @@ package-smoke: ## Build and test the wheel in an isolated environment.
 
 verify-all: verify package-smoke ## Run source and distribution verification.
 
-check: test lint format-check typecheck schema-check benchmarks ## Run individual source checks.
+check: test lint format-check typecheck schema-check openapi-check benchmarks ## Run individual source checks.
 
 api: ## Start the FastAPI development server with reload.
 	$(UV_RUN) uvicorn gir_api.main:app --reload --host $(HOST) --port $(PORT)

@@ -20,6 +20,11 @@ CHECKS: list[Check] = [
     Check("mypy", ["uv", "run", "mypy", "src"]),
     Check("pytest", ["uv", "run", "pytest"]),
     Check("schema", ["uv", "run", "python", "scripts/export_schema.py", "--check"]),
+    Check("openapi", ["uv", "run", "python", "scripts/export_openapi.py", "--check"]),
+    Check(
+        "tutorboard contracts",
+        ["uv", "run", "python", "scripts/export_tutorboard_contracts.py", "--check"],
+    ),
     Check("benchmarks", ["uv", "run", "python", "scripts/run_benchmarks.py"]),
     Check("cli benchmark", ["uv", "run", "gir", "benchmark", "--root", "."]),
     Check(

@@ -46,6 +46,18 @@ See `docs/contracts/API_CONTRACT.md` and `docs/adr/ADR-003-stable-http-api-v1.md
 
 API resilience adds `X-Request-ID`, operation-specific soft timeouts, sanitized `application/problem+json` failures and structured JSON request logs. Runtime settings use the `GEOMETRYOS_*` environment variables documented in `docs/operations/API_RUNTIME.md`; the architectural decision is recorded in `docs/adr/ADR-004-api-resilience-boundary.md`.
 
+## Published TutorBoard contract
+
+`schemas/openapi.v1.json` is the deterministic, committed API v1 contract. `contracts/tutorboard/v1` contains executable request and response fixtures, and `contracts/tutorboard/typescript` proves that a strict TypeScript client can be generated from the OpenAPI artifact. OpenAPI and fixture freshness are part of `make verify`; pull-request CI also detects breaking changes against the base branch.
+
+```bash
+make openapi-check
+make consumer-contract
+make consumer-typescript
+```
+
+See `contracts/tutorboard/v1/README.md` and `docs/adr/ADR-006-published-openapi-and-consumer-contract.md`.
+
 ## Requirements
 
 - Python 3.11 is the canonical local and CI verification version.
@@ -86,6 +98,7 @@ uv run python scripts/package_smoke.py
 - `mypy`;
 - `pytest`, including API, CLI and source import smoke tests;
 - GIR schema freshness checks;
+- OpenAPI v1 and TutorBoard fixture freshness checks;
 - benchmark suites;
 - CLI benchmark and schema smoke checks.
 
@@ -100,6 +113,8 @@ uv run mypy src
 uv run pytest
 uv run python scripts/export_schema.py --output schemas/gir-0.2.schema.json
 uv run python scripts/export_schema.py --check --output schemas/gir-0.2.schema.json
+uv run python scripts/export_openapi.py --check
+uv run python scripts/export_tutorboard_contracts.py --check
 uv run python scripts/run_benchmarks.py
 uv run gir benchmark --root .
 uv run gir export-schema --check --output schemas/gir-0.2.schema.json
@@ -190,6 +205,9 @@ make verify
 make package-smoke
 make verify-all
 make schema-check
+make openapi-check
+make consumer-contract
+make consumer-typescript
 make api
 make api-prod
 make container-build
@@ -259,14 +277,15 @@ make api-prod
 
 ## Continuous integration
 
-GitHub Actions runs three gated jobs on pushes and pull requests:
+GitHub Actions runs four gated jobs on pushes and pull requests:
 
-- `verify` installs dependencies from `uv.lock` and runs `make verify`;
+- `verify` installs dependencies from `uv.lock`, runs `make verify`, and checks OpenAPI compatibility with the base branch;
 - `package-smoke` independently builds and installs the wheel with `make package-smoke`;
-- `container-smoke` runs after both jobs, validates Compose, builds the hardened image and checks runtime security, probes, stable API behavior and graceful shutdown.
+- `consumer-contract` executes TutorBoard fixtures, generates TypeScript types, and type-checks the smoke client;
+- `container-smoke` validates Compose, builds the hardened image and checks runtime security, probes, stable API behavior and graceful shutdown.
 
 All jobs use Python 3.11, frozen dependency installation, read-only repository permissions and explicit timeouts. Pull-request CI builds but does not publish container images.
 
 ## MVP
 
-The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, stable API v1, readiness/liveness probes, a hardened container deployment, CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, OpenCV, SymPy or multi-user features.
+The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, stable API v1, a published OpenAPI/TutorBoard consumer contract, readiness/liveness probes, a hardened container deployment, CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, OpenCV, SymPy or multi-user features.

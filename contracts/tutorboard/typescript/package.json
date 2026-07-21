@@ -1,0 +1,14 @@
+{
+  "name": "geometryos-tutorboard-contract-smoke",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "generate": "node -e \"require('fs').mkdirSync('generated',{recursive:true})\" && openapi-typescript ../../../schemas/openapi.v1.json -o generated/geometryos.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

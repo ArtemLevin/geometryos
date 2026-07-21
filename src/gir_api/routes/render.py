@@ -27,6 +27,8 @@ ExecutorDependency = Annotated[TimedApplicationExecutor, Depends(get_executor)]
     response_model=RenderSvgV1Response,
     operation_id="geometryos_v1_render_svg",
     tags=["Rendering"],
+    summary="Render validated GIR as SVG",
+    description="Validate and normalize a GIR scene, then return deterministic SVG content.",
     responses=problem_responses(422, 500, 504),
 )
 async def render_svg_v1(
@@ -46,6 +48,8 @@ async def render_svg_v1(
     response_model=RenderTikzV1Response,
     operation_id="geometryos_v1_render_tikz",
     tags=["Rendering"],
+    summary="Render validated GIR as TikZ",
+    description="Validate and normalize a GIR scene, then return deterministic TikZ content.",
     responses=problem_responses(422, 500, 504),
 )
 async def render_tikz_v1(
@@ -126,7 +130,6 @@ def _require_valid_sync(result: RenderGeometryResult) -> None:
         raise HTTPException(status_code=422, detail=result.validation_report.model_dump())
 
 
-# Source-level aliases preserve pre-v1 imports for current Python consumers and tests.
 RenderResponse = LegacyRenderResponse
 render_svg_endpoint = render_svg_legacy
 render_tikz_endpoint = render_tikz_legacy

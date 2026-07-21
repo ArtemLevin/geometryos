@@ -5,6 +5,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from gir_api.constants import INTERNAL_ERROR_CODE_HEADER, PROBLEM_MEDIA_TYPE
+from gir_api.openapi_examples import (
+    INTERNAL_ERROR_PROBLEM_EXAMPLE,
+    REQUEST_VALIDATION_PROBLEM_EXAMPLE,
+    TIMEOUT_PROBLEM_EXAMPLE,
+)
 
 
 class StrictProblemModel(BaseModel):
@@ -18,6 +23,16 @@ class ProblemError(StrictProblemModel):
 
 
 class ProblemDetail(StrictProblemModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                REQUEST_VALIDATION_PROBLEM_EXAMPLE,
+                TIMEOUT_PROBLEM_EXAMPLE,
+                INTERNAL_ERROR_PROBLEM_EXAMPLE,
+            ]
+        }
+    )
+
     type: str
     title: str
     status: int
@@ -68,7 +83,7 @@ def problem_responses(*statuses: int) -> dict[int | str, dict[str, Any]]:
         500: "Unexpected internal error.",
         504: "Operation exceeded its configured time limit.",
     }
-    schema = ProblemDetail.model_json_schema()
+    schema = {"$ref": "#/components/schemas/ProblemDetail"}
     return {
         status: {
             "description": descriptions[status],

@@ -36,6 +36,20 @@ jobs:
       - name: Verify
         run: make verify
 
+      - name: Check OpenAPI compatibility with base branch
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "${BASE_REF}" --depth=1
+          if git show "origin/${BASE_REF}:schemas/openapi.v1.json" > /tmp/openapi-baseline.json 2>/dev/null; then
+            uv run python scripts/check_openapi_compatibility.py \
+              --baseline /tmp/openapi-baseline.json \
+              --candidate schemas/openapi.v1.json
+          else
+            echo "No baseline OpenAPI artifact found; introducing compatibility baseline."
+          fi
+
   package-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -59,6 +73,48 @@ jobs:
 
       - name: Test built wheel
         run: make package-smoke
+
+  consumer-contract:
+    needs:
+      - verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install locked Python dependencies
+        run: uv sync --frozen --dev
+
+      - name: Execute TutorBoard Python contracts
+        run: make consumer-contract
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: contracts/tutorboard/typescript/package-lock.json
+
+      - name: Install pinned consumer tooling
+        run: npm ci --prefix contracts/tutorboard/typescript
+
+      - name: Generate TypeScript contract
+        run: npm run --prefix contracts/tutorboard/typescript generate
+
+      - name: Type-check TutorBoard smoke client
+        run: npm run --prefix contracts/tutorboard/typescript typecheck
 
   container-smoke:
     needs:

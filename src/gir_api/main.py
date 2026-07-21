@@ -5,6 +5,8 @@ from gir_api.exception_handlers import register_exception_handlers
 from gir_api.execution import TimedApplicationExecutor
 from gir_api.logging import configure_logging
 from gir_api.middleware import RequestContextMiddleware
+from gir_api.openapi_contract import install_openapi_contract
+from gir_api.openapi_examples import HEALTH_RESPONSE_EXAMPLE
 from gir_api.readiness import (
     ReadinessResponse,
     ServiceLifecycle,
@@ -49,6 +51,10 @@ def create_app(
         methods=["GET"],
         operation_id="geometryos_health",
         tags=["Service"],
+        summary="Check process liveness",
+        description="Return HTTP 200 while the process can serve HTTP requests.",
+        response_model=dict[str, str],
+        responses={200: {"content": {"application/json": {"example": HEALTH_RESPONSE_EXAMPLE}}}},
     )
     application.add_api_route(
         "/ready",
@@ -56,6 +62,11 @@ def create_app(
         methods=["GET"],
         operation_id="geometryos_ready",
         tags=["Service"],
+        summary="Check application readiness",
+        description=(
+            "Return HTTP 200 after startup while lifecycle, settings, and the "
+            "application executor remain available; otherwise return HTTP 503."
+        ),
         response_model=ReadinessResponse,
         responses={
             503: {
@@ -66,6 +77,7 @@ def create_app(
     )
     application.include_router(v1_router)
     application.include_router(legacy_router, include_in_schema=False)
+    install_openapi_contract(application)
     return application
 
 
