@@ -34,7 +34,18 @@ jobs:
         run: uv sync --frozen --dev
 
       - name: Verify
-        run: make verify
+        run: |
+          set -o pipefail
+          make verify 2>&1 | tee verify.log
+
+      - name: Upload verification log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr8-verify-log-stage2
+          path: verify.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Check OpenAPI compatibility with base branch
         if: github.event_name == 'pull_request'
