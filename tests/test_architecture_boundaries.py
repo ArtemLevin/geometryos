@@ -71,6 +71,7 @@ def test_application_layer_is_transport_agnostic() -> None:
                 "typer",
                 "gir_api",
                 "gir_cli",
+                "gir_meta",
                 "anyio",
                 "pydantic_settings",
                 "uvicorn",
@@ -90,11 +91,30 @@ def test_core_does_not_depend_on_outer_layers() -> None:
                 "gir_cli",
                 "gir_ai",
                 "gir_render",
+                "gir_meta",
                 "anyio",
                 "pydantic_settings",
                 "uvicorn",
                 "signal",
                 "contracts",
+            ),
+        )
+
+
+def test_release_metadata_package_is_a_standard_library_leaf() -> None:
+    for path in (ROOT / "src/gir_meta").rglob("*.py"):
+        _assert_no_forbidden_imports(
+            path,
+            (
+                "gir_core",
+                "gir_application",
+                "gir_ai",
+                "gir_render",
+                "gir_api",
+                "gir_cli",
+                "fastapi",
+                "pydantic",
+                "typer",
             ),
         )
 
