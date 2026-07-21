@@ -18,6 +18,8 @@ EXPECTED_CHECK_NAMES = [
     "schema",
     "openapi",
     "tutorboard contracts",
+    "release manifest",
+    "release version",
     "benchmarks",
     "cli benchmark",
     "cli schema check",
@@ -48,6 +50,19 @@ def test_verify_cli_smoke_uses_explicit_paths() -> None:
         "python",
         "scripts/export_openapi.py",
         "--check",
+    ]
+    assert commands["release manifest"] == [
+        "uv",
+        "run",
+        "python",
+        "scripts/export_release_manifest.py",
+        "--check",
+    ]
+    assert commands["release version"] == [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_release_version.py",
     ]
 
 
