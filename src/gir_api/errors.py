@@ -15,6 +15,13 @@ class InputTooLargeError(ApiRuntimeError):
         self.max_chars = max_chars
 
 
+class ServiceUnavailableError(ApiRuntimeError):
+    code = "service_unavailable"
+
+    def __init__(self) -> None:
+        super().__init__("GeometryOS is not ready to accept application requests.")
+
+
 class OperationTimeoutError(ApiRuntimeError):
     code = "operation_timeout"
 
