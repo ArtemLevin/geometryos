@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - integration/09-tutorboard-http-contract
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 concurrency:
-  group: finalize-pr9-trusted
+  group: finalize-pr9-trusted-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
