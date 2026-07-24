@@ -28,6 +28,16 @@ class ProblemDetail(StrictProblemModel):
             "examples": [
                 REQUEST_VALIDATION_PROBLEM_EXAMPLE,
                 TIMEOUT_PROBLEM_EXAMPLE,
+                {
+                    "type": "urn:geometryos:problem:service-unavailable",
+                    "title": "Service unavailable",
+                    "status": 503,
+                    "detail": "GeometryOS is not ready to accept application requests.",
+                    "instance": "/api/v1/generate",
+                    "code": "service_unavailable",
+                    "request_id": "tutorboard-contract",
+                    "errors": [],
+                },
                 INTERNAL_ERROR_PROBLEM_EXAMPLE,
             ]
         }
@@ -81,6 +91,7 @@ def problem_responses(*statuses: int) -> dict[int | str, dict[str, Any]]:
         413: "Request exceeds the configured operational limit.",
         422: "Request or GIR validation failed.",
         500: "Unexpected internal error.",
+        503: "Service is alive but not ready to accept application traffic.",
         504: "Operation exceeded its configured time limit.",
     }
     schema = {"$ref": "#/components/schemas/ProblemDetail"}
