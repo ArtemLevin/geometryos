@@ -94,6 +94,13 @@ jobs:
           uv run python scripts/export_openapi.py
           uv run python scripts/export_tutorboard_contracts.py
 
+      - name: Restore the final workflow tree before verification
+        if: steps.implementation.outputs.required == 'true'
+        shell: bash
+        run: |
+          git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
+          rm -f .github/workflows/pr9-implementation.yml
+
       - name: Run targeted PR 9 tests
         if: steps.implementation.outputs.required == 'true'
         run: |
@@ -125,7 +132,7 @@ jobs:
         shell: bash
         run: |
           git reset --hard HEAD
-          tail -n 320 /tmp/pr9-gates.log > pr9-diagnostic.log
+          tail -n 360 /tmp/pr9-gates.log > pr9-diagnostic.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pr9-diagnostic.log
