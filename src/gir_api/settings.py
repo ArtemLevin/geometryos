@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, computed_field, field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from gir_api.constants import MAX_GENERATE_INPUT_CHARS
@@ -41,7 +41,6 @@ class ApiSettings(BaseSettings):
         _parse_cors_origins(value)
         return value
 
-    @computed_field
     @property
     def parsed_cors_allowed_origins(self) -> tuple[str, ...]:
         return _parse_cors_origins(self.cors_allowed_origins)
