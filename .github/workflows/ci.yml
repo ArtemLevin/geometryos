@@ -1,19 +1,18 @@
 name: CI
 
 on:
-  push:
   pull_request:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pr9-bootstrap-${{ github.ref }}
+  group: pr9-bootstrap-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   pr9-implement:
-    if: github.ref_name == 'integration/09-consumer-http-contract' || github.head_ref == 'integration/09-consumer-http-contract'
+    if: github.head_ref == 'integration/09-consumer-http-contract'
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
