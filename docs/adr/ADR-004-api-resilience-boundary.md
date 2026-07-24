@@ -53,3 +53,7 @@ Keep resilience policy in `gir_api` and leave `gir_application` synchronous and 
 ## Follow-up
 
 A later deployment PR may add readiness, process lifecycle handling and reverse-proxy body limits. Observability work may add metrics and distributed tracing while preserving the request ID and Problem Details contracts defined here.
+
+## Browser contract extension
+
+The resilience boundary also owns exact-origin CORS and the stable `service_unavailable` response. Request correlation remains the outer middleware so preflight and early CORS responses receive `X-Request-ID`; stable application operations are rejected before executor invocation whenever the local readiness snapshot is degraded.

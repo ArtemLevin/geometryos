@@ -20,9 +20,8 @@ OPENAPI_EXTENSIONS: dict[str, str] = {
     "x-geometryos-consumer-contract": "tutorboard/v1",
     "x-geometryos-service-version": SERVICE_VERSION,
 }
-_REQUEST_ID_PARAMETER_REF = "#/components/parameters/GeometryOsRequestId"
-_REQUEST_ID_HEADER_REF = "#/components/headers/GeometryOsRequestId"
-_HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+_REQUEST_ID_COMPONENT = "GeometryOsRequestId"
+_REQUEST_ID_PATTERN = "^[A-Za-z0-9._-]{1,128}$"
 
 
 def install_openapi_contract(application: FastAPI) -> None:
@@ -55,37 +54,47 @@ def _install_problem_components(document: dict[str, Any]) -> None:
 
 def _install_request_id_contract(document: dict[str, Any]) -> None:
     components = document.setdefault("components", {})
-    components.setdefault("parameters", {})["GeometryOsRequestId"] = {
+    components.setdefault("parameters", {})[_REQUEST_ID_COMPONENT] = {
         "name": REQUEST_ID_HEADER,
         "in": "header",
         "required": False,
-        "description": "Optional safe caller correlation identifier. Invalid values are replaced.",
+        "description": (
+            "Optional safe correlation identifier. Valid values are echoed; invalid or "
+            "missing values are replaced with a generated identifier."
+        ),
         "schema": {
             "type": "string",
             "minLength": 1,
             "maxLength": 128,
-            "pattern": "^[A-Za-z0-9._-]{1,128}$",
+            "pattern": _REQUEST_ID_PATTERN,
         },
     }
-    components.setdefault("headers", {})["GeometryOsRequestId"] = {
+    components.setdefault("headers", {})[_REQUEST_ID_COMPONENT] = {
         "required": True,
-        "description": "Resolved request correlation identifier.",
+        "description": "Request correlation identifier assigned by GeometryOS.",
         "schema": {"type": "string", "minLength": 1, "maxLength": 128},
     }
+
+    parameter_ref = {"$ref": f"#/components/parameters/{_REQUEST_ID_COMPONENT}"}
+    header_ref = {"$ref": f"#/components/headers/{_REQUEST_ID_COMPONENT}"}
     for path_item in document.get("paths", {}).values():
         if not isinstance(path_item, dict):
             continue
         for method, operation in path_item.items():
-            if method.lower() not in _HTTP_METHODS or not isinstance(operation, dict):
+            if method not in {"get", "post", "put", "patch", "delete", "head", "options"}:
+                continue
+            if not isinstance(operation, dict):
                 continue
             parameters = operation.setdefault("parameters", [])
-            if {"$ref": _REQUEST_ID_PARAMETER_REF} not in parameters:
-                parameters.append({"$ref": _REQUEST_ID_PARAMETER_REF})
-            for response in operation.get("responses", {}).values():
-                if isinstance(response, dict):
-                    response.setdefault("headers", {})[REQUEST_ID_HEADER] = {
-                        "$ref": _REQUEST_ID_HEADER_REF
-                    }
+            if parameter_ref not in parameters:
+                parameters.append(parameter_ref)
+            responses = operation.get("responses", {})
+            if not isinstance(responses, dict):
+                continue
+            for response in responses.values():
+                if not isinstance(response, dict):
+                    continue
+                response.setdefault("headers", {})[REQUEST_ID_HEADER] = header_ref
 
 
 def build_openapi_document() -> dict[str, Any]:

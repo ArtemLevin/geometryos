@@ -1,9 +1,12 @@
 import type { paths } from "./generated/geometryos";
 
-type GenerateRequest = paths["/api/v1/generate"]["post"]["requestBody"]["content"]["application/json"];
-type GenerateResponse = paths["/api/v1/generate"]["post"]["responses"][200]["content"]["application/json"];
-type GenerateUnavailable = paths["/api/v1/generate"]["post"]["responses"][503]["content"]["application/problem+json"];
-type GenerateTimeout = paths["/api/v1/generate"]["post"]["responses"][504]["content"]["application/problem+json"];
+type GenerateOperation = paths["/api/v1/generate"]["post"];
+type GenerateRequest = GenerateOperation["requestBody"]["content"]["application/json"];
+type GenerateRequestHeaders = NonNullable<GenerateOperation["parameters"]["header"]>;
+type GenerateResponse = GenerateOperation["responses"][200]["content"]["application/json"];
+type GenerateResponseHeaders = GenerateOperation["responses"][200]["headers"];
+type GenerateUnavailable = GenerateOperation["responses"][503]["content"]["application/problem+json"];
+type GenerateTimeout = GenerateOperation["responses"][504]["content"]["application/problem+json"];
 type SvgResponse = paths["/api/v1/render/svg"]["post"]["responses"][200]["content"]["application/json"];
 type ReadyResponse = paths["/ready"]["get"]["responses"][200]["content"]["application/json"];
 type NotReadyResponse = paths["/ready"]["get"]["responses"][503]["content"]["application/json"];
@@ -30,6 +33,8 @@ function handleGenerateResponse(response: GenerateResponse): string | null {
   }
 }
 
+const requestId: GenerateRequestHeaders["X-Request-ID"] = "tutorboard-smoke";
+const responseRequestId: GenerateResponseHeaders["X-Request-ID"] = "tutorboard-smoke";
 const svgMediaType: SvgResponse["media_type"] = "image/svg+xml";
 const unavailableCode: GenerateUnavailable["code"] = "service_unavailable";
 const timeoutCode: GenerateTimeout["code"] = "operation_timeout";
@@ -38,6 +43,8 @@ const notReadiness: NotReadyResponse["status"] = "not_ready";
 
 void request;
 void handleGenerateResponse;
+void requestId;
+void responseRequestId;
 void svgMediaType;
 void unavailableCode;
 void timeoutCode;

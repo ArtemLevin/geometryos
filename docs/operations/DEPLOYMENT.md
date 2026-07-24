@@ -336,3 +336,7 @@ docker compose up --build --detach
     GeometryOS `0.2.0` is published as `ghcr.io/artemlevin/geometryos:0.2.0` and `sha-<commit>`. Production deployments should pin `ghcr.io/artemlevin/geometryos@sha256:<digest>`. The workflow tests the registry digest before assigning SemVer aliases and does not publish `latest`.
 
     Release and rollback details are documented in `docs/RELEASE_PROCESS.md`.
+
+## TutorBoard browser origin
+
+Set `GEOMETRYOS_CORS_ALLOWED_ORIGINS` to the exact TutorBoard browser origins when direct browser integration is required. Localhost and `127.0.0.1` are distinct origins and must be listed separately. Do not use wildcard origins. Reverse proxies must preserve caller `X-Request-ID` and the response `X-Request-ID` header.

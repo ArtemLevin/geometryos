@@ -113,3 +113,9 @@ Weakening these properties or introducing a new required environment variable re
     GeometryOS service releases follow Semantic Versioning independently from API, GIR and TutorBoard contracts. `pyproject.toml` is the canonical service-version source; `release/manifest.json`, OpenAPI service metadata, OCI labels, CLI output and release filenames must match it.
 
     Versioned Git tags, GitHub Release assets and full SemVer container tags are immutable. A defective release is replaced by a patch release, never rewritten. The compatible minor image tag may advance only after the patch digest passes the complete registry smoke and release gates.
+
+## Browser transport compatibility
+
+The published optional `X-Request-ID` request parameter, required response-correlation header, HTTP `503` service-unavailable outcome, and stable `service_unavailable` Problem Details code are part of API v1 compatibility. Removing them, making the request header mandatory, narrowing its accepted value contract, or changing the stable code requires a breaking-contract review.
+
+CORS remains disabled by default and is enabled only for exact configured origins. This operational default may not be weakened to wildcard or credentialed cross-origin access without a separate security review.

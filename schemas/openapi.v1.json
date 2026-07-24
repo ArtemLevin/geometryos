@@ -2,7 +2,7 @@
   "components": {
     "headers": {
       "GeometryOsRequestId": {
-        "description": "Resolved request correlation identifier.",
+        "description": "Request correlation identifier assigned by GeometryOS.",
         "required": true,
         "schema": {
           "maxLength": 128,
@@ -13,7 +13,7 @@
     },
     "parameters": {
       "GeometryOsRequestId": {
-        "description": "Optional safe caller correlation identifier. Invalid values are replaced.",
+        "description": "Optional safe correlation identifier. Valid values are echoed; invalid or missing values are replaced with a generated identifier.",
         "in": "header",
         "name": "X-Request-ID",
         "required": false,

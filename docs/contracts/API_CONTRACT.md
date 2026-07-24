@@ -210,3 +210,9 @@ make consumer-typescript
 ```
 
 Generated TypeScript source is intentionally not committed. The committed OpenAPI artifact, exact npm lock, generated-type compilation smoke, and executable JSON fixtures form the reproducible TutorBoard contract.
+
+## Browser and request-correlation contract
+
+Every published operation accepts the optional `X-Request-ID` header and declares the assigned `X-Request-ID` on every response. Stable v1 POST operations are guarded by the same local readiness snapshot as `/ready`; while unavailable they return HTTP `503`, `application/problem+json`, stable code `service_unavailable`, `Cache-Control: no-store`, and matching body/header request IDs.
+
+CORS is an operational opt-in. Exact configured origins may use `GET`, `POST`, and preflight `OPTIONS`, may send `Content-Type` and `X-Request-ID`, and can read the exposed `X-Request-ID`. Wildcard origins and credentials are not supported.

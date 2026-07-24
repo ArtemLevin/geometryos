@@ -35,40 +35,45 @@ class ApiSettings(BaseSettings):
     def normalize_log_level(cls, value: object) -> object:
         return value.upper() if isinstance(value, str) else value
 
-    @field_validator("cors_allowed_origins")
+    @field_validator("cors_allowed_origins", mode="before")
     @classmethod
-    def validate_cors_allowed_origins(cls, value: str) -> str:
-        _parse_cors_origins(value)
-        return value
+    def validate_cors_allowed_origins(cls, value: object) -> str:
+        if value is None:
+            return ""
+        if not isinstance(value, str):
+            raise ValueError("CORS allowed origins must be a comma-separated string.")
+
+        origins: list[str] = []
+        for raw_origin in value.split(","):
+            candidate = raw_origin.strip()
+            if not candidate:
+                continue
+            if candidate in {"*", "null"}:
+                raise ValueError("Wildcard and null CORS origins are forbidden.")
+            parsed = urlsplit(candidate)
+            if parsed.scheme.lower() not in {"http", "https"} or parsed.hostname is None:
+                raise ValueError(f"Invalid CORS origin: {candidate!r}.")
+            if parsed.username is not None or parsed.password is not None:
+                raise ValueError("CORS origins must not contain credentials.")
+            if parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
+                raise ValueError("CORS origins must not contain paths, queries, or fragments.")
+            try:
+                _ = parsed.port
+            except ValueError as exc:
+                raise ValueError(f"Invalid CORS origin port: {candidate!r}.") from exc
+            normalized = f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+            if normalized not in origins:
+                origins.append(normalized)
+
+        if len(origins) > _MAX_CORS_ORIGINS:
+            raise ValueError(f"At most {_MAX_CORS_ORIGINS} CORS origins are allowed.")
+        return ",".join(origins)
 
     @property
     def parsed_cors_allowed_origins(self) -> tuple[str, ...]:
-        return _parse_cors_origins(self.cors_allowed_origins)
-
-
-def _parse_cors_origins(value: str) -> tuple[str, ...]:
-    origins: list[str] = []
-    seen: set[str] = set()
-    for raw_origin in value.split(","):
-        origin = raw_origin.strip()
-        if not origin:
-            continue
-        if origin in {"*", "null"}:
-            raise ValueError("CORS origins must be explicit HTTP(S) origins.")
-        parsed = urlsplit(origin)
-        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-            raise ValueError(f"Invalid CORS origin: {origin!r}.")
-        if parsed.username is not None or parsed.password is not None:
-            raise ValueError("CORS origins must not contain credentials.")
-        if parsed.query or parsed.fragment or parsed.path not in {"", "/"}:
-            raise ValueError("CORS origins must not contain paths, queries, or fragments.")
-        canonical = origin[:-1] if origin.endswith("/") else origin
-        if canonical not in seen:
-            seen.add(canonical)
-            origins.append(canonical)
-    if len(origins) > _MAX_CORS_ORIGINS:
-        raise ValueError(f"At most {_MAX_CORS_ORIGINS} CORS origins are allowed.")
-    return tuple(origins)
+        if not self.cors_allowed_origins:
+            return ()
+        return tuple(self.cors_allowed_origins.split(","))
 
 
 @lru_cache(maxsize=1)

@@ -311,3 +311,14 @@ All pull-request jobs use frozen dependency installation, read-only repository p
 ## MVP
 
 The MVP includes strict GIR models, semantic validation, schema export/check, a deterministic rule-based adapter for triangle/altitude/median/midpoint/angle-bisector cases, a canonical application pipeline, canonical single-triangle layout, SVG/TikZ renderers, stable API v1, a published OpenAPI/TutorBoard consumer contract, readiness/liveness probes, a hardened container deployment, CLI contracts and text/render benchmarks. It does not include a general solver, real LLM integration, PDF, frontend, auth, DB, OpenCV, SymPy or multi-user features.
+
+## TutorBoard browser development
+
+Browser access is disabled unless exact origins are configured. For the local TutorBoard Vite server:
+
+```powershell
+$env:GEOMETRYOS_CORS_ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+uv run uvicorn gir_api.main:app --reload
+```
+
+GeometryOS never accepts wildcard origins or credentialed CORS. Browser responses expose `X-Request-ID`; stable v1 operations return `503 application/problem+json` with code `service_unavailable` while readiness is degraded.

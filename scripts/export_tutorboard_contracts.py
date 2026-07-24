@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
 from gir_api.execution import TimedApplicationExecutor  # noqa: E402
 from gir_api.main import create_app  # noqa: E402
 from gir_api.openapi_examples import ALTITUDE_GIR_EXAMPLE  # noqa: E402
+from gir_api.readiness import ServiceLifecycle  # noqa: E402
 from gir_api.settings import ApiSettings  # noqa: E402
 from gir_application import GenerateGeometryCommand, generate_geometry  # noqa: E402
 
@@ -53,9 +54,15 @@ def _response_json(response: Any, expected_status: int) -> dict[str, Any]:
         raise RuntimeError(
             f"Unexpected status {response.status_code}, expected {expected_status}: {response.text}"
         )
+    response_request_id = response.headers.get("X-Request-ID")
+    if response_request_id != REQUEST_ID:
+        raise RuntimeError(f"Contract response request ID mismatch: {response_request_id!r}")
     payload = response.json()
     if not isinstance(payload, dict):
         raise RuntimeError("Contract response must be a JSON object.")
+    body_request_id = payload.get("request_id")
+    if body_request_id is not None and body_request_id != response_request_id:
+        raise RuntimeError("Problem Details request_id must match X-Request-ID.")
     return payload
 
 
@@ -203,6 +210,21 @@ def build_contract_documents() -> dict[str, object]:
             500,
         )
 
+    unavailable_lifecycle = ServiceLifecycle()
+    with TestClient(
+        create_app(lifecycle=unavailable_lifecycle),
+        raise_server_exceptions=False,
+    ) as client:
+        unavailable_lifecycle.mark_stopping()
+        documents["service-unavailable.problem.json"] = _response_json(
+            client.post(
+                "/api/v1/generate",
+                json=GENERATE_SUCCESS_REQUEST,
+                headers=HEADERS,
+            ),
+            503,
+        )
+
     cases = [
         _case("generate-success", "POST", "/api/v1/generate", 200),
         _case("generate-ambiguity", "POST", "/api/v1/generate", 200),
@@ -220,6 +242,16 @@ def build_contract_documents() -> dict[str, object]:
             "status": 422,
             "media_type": "application/problem+json",
             "mode": "executable",
+        },
+        {
+            "id": "service-unavailable",
+            "method": "POST",
+            "path": "/api/v1/generate",
+            "request": "generate-success.request.json",
+            "response": "service-unavailable.problem.json",
+            "status": 503,
+            "media_type": "application/problem+json",
+            "mode": "injected_lifecycle",
         },
         {
             "id": "operation-timeout",

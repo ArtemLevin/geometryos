@@ -111,3 +111,14 @@ The production container uses `/ready` as its Docker healthcheck. See `docs/oper
 ## Deferred production controls
 
 The current deployment does not add reverse-proxy request-byte limits, TLS, authentication, rate limiting, Prometheus, OpenTelemetry, distributed tracing, Kubernetes resources or image publication. These concerns remain separate from the stable runtime and deployment contracts.
+
+### Browser CORS boundary
+
+| Variable | Default | Contract |
+|---|---:|---|
+| `GEOMETRYOS_CORS_ALLOWED_ORIGINS` | empty | Comma-separated exact HTTP(S) origins; empty disables CORS |
+| `GEOMETRYOS_CORS_MAX_AGE_SECONDS` | `600` | `0..86400` preflight cache duration |
+
+Wildcard, `null`, credentialed origins, and origins with paths, queries, or fragments fail application configuration. Credentials remain disabled. Allowed browser requests may send `Content-Type` and `X-Request-ID`; responses expose `X-Request-ID`.
+
+Stable v1 POST operations check local readiness before invoking the executor. A degraded service returns sanitized `503` Problem Details with code `service_unavailable`; `/health` and `/ready` preserve their existing probe response bodies.
