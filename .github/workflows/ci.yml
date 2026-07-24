@@ -209,3 +209,98 @@ jobs:
           path: dist/release/0.2.0/
           if-no-files-found: error
           retention-days: 14
+
+  pr9-implement:
+    if: github.event_name == 'pull_request' && github.head_ref == 'integration/09-consumer-http-contract'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out the pull-request head branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Detect pending implementation
+        id: implementation
+        shell: bash
+        run: |
+          if [[ -f scripts/pr9_implement.py ]]; then
+            echo "required=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "required=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install uv
+        if: steps.implementation.outputs.required == 'true'
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        if: steps.implementation.outputs.required == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node
+        if: steps.implementation.outputs.required == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: contracts/tutorboard/typescript/package-lock.json
+
+      - name: Install locked dependencies
+        if: steps.implementation.outputs.required == 'true'
+        run: uv sync --frozen --dev
+
+      - name: Apply the PR 9 contract patch
+        if: steps.implementation.outputs.required == 'true'
+        run: |
+          uv run python scripts/pr9_implement.py
+          rm -f noop noop2 noop3 noop4
+
+      - name: Format and regenerate contracts
+        if: steps.implementation.outputs.required == 'true'
+        run: |
+          uv run ruff format .
+          uv run python scripts/export_openapi.py
+          uv run python scripts/export_tutorboard_contracts.py
+
+      - name: Run targeted PR 9 tests
+        if: steps.implementation.outputs.required == 'true'
+        run: |
+          uv run pytest tests/api/test_cors.py tests/api/test_pr9_settings.py tests/api/test_service_unavailable.py
+          uv run pytest tests/contracts/test_pr9_openapi_contract.py tests/contracts/test_pr9_openapi_compatibility.py
+
+      - name: Run canonical verification
+        if: steps.implementation.outputs.required == 'true'
+        run: make verify
+
+      - name: Verify package and consumer generation
+        if: steps.implementation.outputs.required == 'true'
+        run: |
+          make package-smoke
+          make consumer-typescript
+
+      - name: Verify deployment boundary
+        if: steps.implementation.outputs.required == 'true'
+        run: |
+          docker compose config --quiet
+          make container-smoke
+          make dependency-audit
+
+      - name: Publish only the verified product changes
+        if: steps.implementation.outputs.required == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- ':!.github/workflows/**'
+          git commit -m "feat: harden TutorBoard browser HTTP contract"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
