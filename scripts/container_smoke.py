@@ -149,6 +149,24 @@ def request_json(
         return response.status, response_headers, body
 
 
+def request_text(
+    url: str,
+    *,
+    method: str,
+    headers: dict[str, str],
+    timeout: float = 3.0,
+) -> tuple[int, dict[str, str], str]:
+    request = urllib.request.Request(url, headers=headers, method=method)
+    try:
+        response = urllib.request.urlopen(request, timeout=timeout)
+    except urllib.error.HTTPError as exc:
+        response = exc
+    with response:
+        body = response.read().decode("utf-8")
+        response_headers = {name.lower(): value for name, value in response.headers.items()}
+        return response.status, response_headers, body
+
+
 def wait_for_endpoint(
     url: str,
     *,
@@ -200,6 +218,8 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
                 name,
                 "--publish",
                 f"127.0.0.1:{port}:8000",
+                "--env",
+                "GEOMETRYOS_CORS_ALLOWED_ORIGINS=http://localhost:5173",
                 "--read-only",
                 "--tmpfs",
                 "/tmp:size=16m,mode=1777",
@@ -236,6 +256,24 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
 
         wait_for_container_health(name, timeout_seconds=timeout_seconds)
 
+        preflight_status, preflight_headers, _ = request_text(
+            f"{base_url}/api/v1/generate",
+            method="OPTIONS",
+            headers={
+                "Origin": "http://localhost:5173",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type, X-Request-ID",
+                "X-Request-ID": "container-preflight",
+            },
+        )
+        if preflight_status != 200:
+            raise SmokeFailure(f"Unexpected CORS preflight status: {preflight_status}")
+        if preflight_headers.get("access-control-allow-origin") != "http://localhost:5173":
+            raise SmokeFailure("CORS preflight did not allow the configured origin.")
+        if preflight_headers.get("x-request-id") != "container-preflight":
+            raise SmokeFailure("CORS preflight did not preserve X-Request-ID.")
+        print("[PASS] browser CORS preflight and request correlation", flush=True)
+
         status, response_headers, body = request_json(
             f"{base_url}/api/v1/generate",
             method="POST",
@@ -245,7 +283,10 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
                 "output": ["svg"],
                 "mode": "strict",
             },
-            headers={"X-Request-ID": "container-smoke"},
+            headers={
+                "X-Request-ID": "container-smoke",
+                "Origin": "http://localhost:5173",
+            },
             timeout=10,
         )
         if status != 200 or body.get("status") != "success":
@@ -254,7 +295,18 @@ def run_container_smoke(image: str, *, timeout_seconds: float) -> None:
             raise SmokeFailure(f"Unexpected GIR schema version: {body!r}")
         if response_headers.get("x-request-id") != "container-smoke":
             raise SmokeFailure("Request correlation header was not preserved.")
-        print("[PASS] stable API generation and request correlation", flush=True)
+        if response_headers.get("access-control-allow-origin") != "http://localhost:5173":
+            raise SmokeFailure("Configured browser origin was not allowed.")
+        exposed = response_headers.get("access-control-expose-headers", "").lower()
+        if "x-request-id" not in exposed:
+            raise SmokeFailure("X-Request-ID was not exposed to browser JavaScript.")
+        _, denied_headers, _ = request_json(
+            f"{base_url}/health",
+            headers={"Origin": "http://attacker.invalid"},
+        )
+        if "access-control-allow-origin" in denied_headers:
+            raise SmokeFailure("Unconfigured browser origin was unexpectedly allowed.")
+        print("[PASS] stable API generation, CORS, and request correlation", flush=True)
 
         run(["docker", "stop", "--time", "30", name])
         stopped = True

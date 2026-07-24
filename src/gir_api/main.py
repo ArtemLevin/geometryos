@@ -1,6 +1,7 @@
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
-from gir_api.constants import API_TITLE, API_V1_VERSION, OPENAPI_TAGS
+from gir_api.constants import API_TITLE, API_V1_VERSION, OPENAPI_TAGS, REQUEST_ID_HEADER
 from gir_api.exception_handlers import register_exception_handlers
 from gir_api.execution import TimedApplicationExecutor
 from gir_api.logging import configure_logging
@@ -44,6 +45,17 @@ def create_app(
     application.state.lifecycle = resolved_lifecycle
 
     register_exception_handlers(application)
+    if resolved_settings.parsed_cors_allowed_origins:
+        application.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(resolved_settings.parsed_cors_allowed_origins),
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=["Content-Type", REQUEST_ID_HEADER],
+            expose_headers=[REQUEST_ID_HEADER],
+            max_age=resolved_settings.cors_max_age_seconds,
+        )
+    # Added last so request correlation wraps CORS preflight and rejection responses.
     application.add_middleware(RequestContextMiddleware, settings=resolved_settings)
     application.add_api_route(
         "/health",

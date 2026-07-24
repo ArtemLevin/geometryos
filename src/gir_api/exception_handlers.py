@@ -10,7 +10,12 @@ from starlette.responses import Response
 
 from gir_api.constants import INTERNAL_ERROR_CODE_HEADER
 from gir_api.context import get_request_id
-from gir_api.errors import InputTooLargeError, OperationTimeoutError, SemanticValidationError
+from gir_api.errors import (
+    InputTooLargeError,
+    OperationTimeoutError,
+    SemanticValidationError,
+    ServiceUnavailableError,
+)
 from gir_api.problem_details import ProblemError, is_v1_path, problem_response
 
 ExceptionT = TypeVar("ExceptionT", bound=Exception)
@@ -21,6 +26,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(SemanticValidationError, semantic_validation_handler)
     app.add_exception_handler(InputTooLargeError, input_too_large_handler)
     app.add_exception_handler(OperationTimeoutError, operation_timeout_handler)
+    app.add_exception_handler(ServiceUnavailableError, service_unavailable_handler)
     app.add_exception_handler(StarletteHTTPException, http_exception_problem_handler)
     app.add_exception_handler(Exception, unexpected_exception_handler)
 
@@ -96,6 +102,20 @@ async def input_too_large_handler(request: Request, exc: Exception) -> Response:
         instance=request.url.path,
         code=input_error.code,
         request_id=_request_id(),
+    )
+
+
+async def service_unavailable_handler(request: Request, exc: Exception) -> Response:
+    _expect_exception(exc, ServiceUnavailableError)
+    return problem_response(
+        status=503,
+        problem_type="urn:geometryos:problem:service-unavailable",
+        title="Service unavailable",
+        detail="GeometryOS is not ready to accept application requests.",
+        instance=request.url.path,
+        code="service_unavailable",
+        request_id=_request_id(),
+        no_store=True,
     )
 
 

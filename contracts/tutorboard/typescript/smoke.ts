@@ -2,6 +2,7 @@ import type { paths } from "./generated/geometryos";
 
 type GenerateRequest = paths["/api/v1/generate"]["post"]["requestBody"]["content"]["application/json"];
 type GenerateResponse = paths["/api/v1/generate"]["post"]["responses"][200]["content"]["application/json"];
+type GenerateUnavailable = paths["/api/v1/generate"]["post"]["responses"][503]["content"]["application/problem+json"];
 type GenerateTimeout = paths["/api/v1/generate"]["post"]["responses"][504]["content"]["application/problem+json"];
 type SvgResponse = paths["/api/v1/render/svg"]["post"]["responses"][200]["content"]["application/json"];
 type ReadyResponse = paths["/ready"]["get"]["responses"][200]["content"]["application/json"];
@@ -30,6 +31,7 @@ function handleGenerateResponse(response: GenerateResponse): string | null {
 }
 
 const svgMediaType: SvgResponse["media_type"] = "image/svg+xml";
+const unavailableCode: GenerateUnavailable["code"] = "service_unavailable";
 const timeoutCode: GenerateTimeout["code"] = "operation_timeout";
 const readiness: ReadyResponse["status"] = "ready";
 const notReadiness: NotReadyResponse["status"] = "not_ready";
@@ -37,6 +39,7 @@ const notReadiness: NotReadyResponse["status"] = "not_ready";
 void request;
 void handleGenerateResponse;
 void svgMediaType;
+void unavailableCode;
 void timeoutCode;
 void readiness;
 void notReadiness;

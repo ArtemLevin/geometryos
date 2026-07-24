@@ -22,3 +22,7 @@ API changes become visible as generated artifact diffs, stale contracts fail CI,
 ## Rejected alternatives
 
 Runtime-only OpenAPI, handwritten OpenAPI, committed generated TypeScript clients, immediate Pact adoption, reading repository fixtures from runtime code, renaming operation IDs, and coupling package version to API version were rejected.
+
+## Correlation headers and availability
+
+The published OpenAPI includes the optional `X-Request-ID` request parameter, response header declarations for every status, and the stable `503` Problem Details outcome. The compatibility checker treats removal or narrowing of these headers as breaking and newly declared response statuses as review-required additions.

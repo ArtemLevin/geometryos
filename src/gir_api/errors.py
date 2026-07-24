@@ -30,3 +30,10 @@ class SemanticValidationError(ApiRuntimeError):
     def __init__(self, validation_report: ValidationReport) -> None:
         super().__init__("GIR failed semantic validation.")
         self.validation_report = validation_report
+
+
+class ServiceUnavailableError(ApiRuntimeError):
+    code = "service_unavailable"
+
+    def __init__(self) -> None:
+        super().__init__("GeometryOS is not ready to accept application requests.")

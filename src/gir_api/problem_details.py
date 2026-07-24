@@ -81,6 +81,7 @@ def problem_responses(*statuses: int) -> dict[int | str, dict[str, Any]]:
         413: "Request exceeds the configured operational limit.",
         422: "Request or GIR validation failed.",
         500: "Unexpected internal error.",
+        503: "Service is alive but not ready to accept application traffic.",
         504: "Operation exceeded its configured time limit.",
     }
     schema = {"$ref": "#/components/schemas/ProblemDetail"}
