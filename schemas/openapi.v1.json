@@ -1500,6 +1500,16 @@
             "type": "urn:geometryos:problem:operation-timeout"
           },
           {
+            "code": "service_unavailable",
+            "detail": "GeometryOS is not ready to accept application requests.",
+            "errors": [],
+            "instance": "/api/v1/generate",
+            "request_id": "tutorboard-contract",
+            "status": 503,
+            "title": "Service unavailable",
+            "type": "urn:geometryos:problem:service-unavailable"
+          },
+          {
             "code": "internal_error",
             "detail": "An unexpected internal error occurred.",
             "errors": [],

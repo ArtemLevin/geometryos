@@ -107,6 +107,8 @@ def build_openapi_document() -> dict[str, Any]:
             render_timeout_seconds=10.0,
             max_input_chars=20_000,
             log_level="INFO",
+            cors_allowed_origins="",
+            cors_max_age_seconds=600,
         )
     )
     document = deepcopy(application.openapi())

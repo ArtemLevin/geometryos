@@ -35,7 +35,6 @@ async def request_validation_handler(request: Request, exc: Exception) -> Respon
     validation_error = _expect_exception(exc, RequestValidationError)
     if not is_v1_path(request.url.path):
         return await request_validation_exception_handler(request, validation_error)
-
     errors = [
         ProblemError(
             code=str(item.get("type", "validation_error")),
@@ -64,7 +63,6 @@ async def semantic_validation_handler(request: Request, exc: Exception) -> Respo
             content={"detail": semantic_error.validation_report.model_dump(mode="json")},
             headers={INTERNAL_ERROR_CODE_HEADER: semantic_error.code},
         )
-
     errors = [
         ProblemError(
             code=issue.code,
@@ -93,7 +91,6 @@ async def input_too_large_handler(request: Request, exc: Exception) -> Response:
             content={"detail": "Input exceeds the configured limit."},
             headers={INTERNAL_ERROR_CODE_HEADER: input_error.code},
         )
-
     return problem_response(
         status=413,
         problem_type="urn:geometryos:problem:input-too-large",
@@ -127,7 +124,6 @@ async def operation_timeout_handler(request: Request, exc: Exception) -> Respons
             content={"detail": "Operation timed out."},
             headers={INTERNAL_ERROR_CODE_HEADER: timeout_error.code},
         )
-
     return problem_response(
         status=504,
         problem_type="urn:geometryos:problem:operation-timeout",
@@ -146,7 +142,6 @@ async def http_exception_problem_handler(request: Request, exc: Exception) -> Re
     http_error = _expect_exception(exc, StarletteHTTPException)
     if not is_v1_path(request.url.path) or http_error.status_code not in {404, 405}:
         return await http_exception_handler(request, http_error)
-
     code = "not_found" if http_error.status_code == 404 else "method_not_allowed"
     title = "Not found" if http_error.status_code == 404 else "Method not allowed"
     return problem_response(

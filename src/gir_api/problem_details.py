@@ -28,6 +28,16 @@ class ProblemDetail(StrictProblemModel):
             "examples": [
                 REQUEST_VALIDATION_PROBLEM_EXAMPLE,
                 TIMEOUT_PROBLEM_EXAMPLE,
+                {
+                    "type": "urn:geometryos:problem:service-unavailable",
+                    "title": "Service unavailable",
+                    "status": 503,
+                    "detail": "GeometryOS is not ready to accept application requests.",
+                    "instance": "/api/v1/generate",
+                    "code": "service_unavailable",
+                    "request_id": "tutorboard-contract",
+                    "errors": [],
+                },
                 INTERNAL_ERROR_PROBLEM_EXAMPLE,
             ]
         }

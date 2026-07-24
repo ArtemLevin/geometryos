@@ -68,6 +68,55 @@ def compare_openapi_documents(
     return issues
 
 
+def _compare_parameters(
+    baseline_parameters: object,
+    candidate_parameters: object,
+    baseline_document: dict[str, Any],
+    candidate_document: dict[str, Any],
+    location: str,
+    issues: list[CompatibilityIssue],
+) -> None:
+    baseline_items = _parameter_map(baseline_parameters, baseline_document)
+    candidate_items = _parameter_map(candidate_parameters, candidate_document)
+    for key, baseline_parameter in baseline_items.items():
+        candidate_parameter = candidate_items.get(key)
+        parameter_location = f"{location} parameter {key[1]} {key[0]}"
+        if candidate_parameter is None:
+            issues.append(_breaking(parameter_location, "parameter was removed"))
+            continue
+        if not baseline_parameter.get("required", False) and candidate_parameter.get(
+            "required", False
+        ):
+            issues.append(_breaking(parameter_location, "parameter became required"))
+        _compare_schema(
+            baseline_parameter.get("schema", {}),
+            candidate_parameter.get("schema", {}),
+            baseline_document,
+            candidate_document,
+            parameter_location,
+            "request",
+            issues,
+            set(),
+        )
+    for key in sorted(set(candidate_items) - set(baseline_items)):
+        issues.append(_review(f"{location} parameter {key[1]} {key[0]}", "parameter added"))
+
+
+def _parameter_map(
+    parameters: object, document: dict[str, Any]
+) -> dict[tuple[str, str], dict[str, Any]]:
+    result: dict[tuple[str, str], dict[str, Any]] = {}
+    if not isinstance(parameters, list):
+        return result
+    for item in parameters:
+        resolved = _resolve_schema(item, document) if isinstance(item, dict) else {}
+        name = resolved.get("name")
+        location = resolved.get("in")
+        if isinstance(name, str) and isinstance(location, str):
+            result[(name.lower(), location)] = resolved
+    return result
+
+
 def _compare_request_body(
     baseline_body: object,
     candidate_body: object,
@@ -105,6 +154,8 @@ def _compare_responses(
     if not isinstance(baseline_responses, dict) or not isinstance(candidate_responses, dict):
         issues.append(_breaking(location, "responses disappeared"))
         return
+    for status in sorted(set(candidate_responses) - set(baseline_responses)):
+        issues.append(_review(f"{location} response {status}", "response status added"))
     for status, baseline_response in baseline_responses.items():
         candidate_response = candidate_responses.get(status)
         status_location = f"{location} response {status}"
@@ -112,6 +163,14 @@ def _compare_responses(
             issues.append(_breaking(status_location, "response disappeared"))
             continue
         if isinstance(baseline_response, dict):
+            _compare_response_headers(
+                baseline_response.get("headers", {}),
+                candidate_response.get("headers", {}),
+                baseline_document,
+                candidate_document,
+                status_location,
+                issues,
+            )
             _compare_content(
                 baseline_response.get("content", {}),
                 candidate_response.get("content", {}),
@@ -230,6 +289,45 @@ def _compare_response_headers(
         issues.append(_review(f"{location} header {name}", "response header was added"))
 
 
+def _compare_response_headers(
+    baseline_headers: object,
+    candidate_headers: object,
+    baseline_document: dict[str, Any],
+    candidate_document: dict[str, Any],
+    location: str,
+    issues: list[CompatibilityIssue],
+) -> None:
+    if not isinstance(baseline_headers, dict):
+        return
+    if not isinstance(candidate_headers, dict):
+        issues.append(_breaking(location, "response headers disappeared"))
+        return
+    for name, baseline_header in baseline_headers.items():
+        candidate_header = candidate_headers.get(name)
+        header_location = f"{location} header {name}"
+        if not isinstance(candidate_header, dict):
+            issues.append(_breaking(header_location, "response header was removed"))
+            continue
+        baseline_resolved = _resolve_schema(baseline_header, baseline_document)
+        candidate_resolved = _resolve_schema(candidate_header, candidate_document)
+        if baseline_resolved.get("required", False) and not candidate_resolved.get(
+            "required", False
+        ):
+            issues.append(_breaking(header_location, "required response header became optional"))
+        _compare_schema(
+            baseline_resolved.get("schema", {}),
+            candidate_resolved.get("schema", {}),
+            baseline_document,
+            candidate_document,
+            header_location,
+            "response",
+            issues,
+            set(),
+        )
+    for name in sorted(set(candidate_headers) - set(baseline_headers)):
+        issues.append(_review(f"{location} header {name}", "response header added"))
+
+
 def _compare_content(
     baseline_content: object,
     candidate_content: object,
@@ -277,7 +375,6 @@ def _compare_schema(
         if baseline_schema != candidate_schema:
             issues.append(_breaking(location, "schema changed"))
         return
-
     pair = (
         str(baseline_schema.get("$ref", id(baseline_schema))),
         str(candidate_schema.get("$ref", id(candidate_schema))),

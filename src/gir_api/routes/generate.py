@@ -82,7 +82,6 @@ def _to_command(
     )
 
 
-# Source-level aliases preserve pre-v1 imports for current Python consumers and tests.
 GenerateRequest = LegacyGenerateRequest
 GenerateResponse = LegacyGenerateResponse
 generate = generate_legacy
