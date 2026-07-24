@@ -81,21 +81,13 @@ def _correlation_document() -> dict[str, Any]:
             "/api/v1/generate": {
                 "post": {
                     "operationId": "geometryos_v1_generate",
-                    "parameters": [
-                        {"$ref": "#/components/parameters/GeometryOsRequestId"}
-                    ],
+                    "parameters": [{"$ref": "#/components/parameters/GeometryOsRequestId"}],
                     "responses": {
                         "200": {
                             "headers": {
-                                "X-Request-ID": {
-                                    "$ref": "#/components/headers/GeometryOsRequestId"
-                                }
+                                "X-Request-ID": {"$ref": "#/components/headers/GeometryOsRequestId"}
                             },
-                            "content": {
-                                "application/json": {
-                                    "schema": {"type": "object"}
-                                }
-                            },
+                            "content": {"application/json": {"schema": {"type": "object"}}},
                         }
                     },
                 }
@@ -116,18 +108,18 @@ def _issues(
     [
         lambda doc: doc["paths"].pop("/items"),
         lambda doc: doc["paths"]["/items"]["post"].update(operationId="renamed"),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["required"].append("mode"),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["properties"]["name"].update(type="integer"),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["properties"]["mode"].update(enum=["a"]),
-        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"][
-            "application/json"
-        ]["schema"]["properties"]["name"].update(maxLength=50),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["required"].append("mode"),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["properties"]["name"].update(type="integer"),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["properties"]["mode"].update(enum=["a"]),
+        lambda doc: doc["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+            "schema"
+        ]["properties"]["name"].update(maxLength=50),
         lambda doc: doc["paths"]["/items"]["post"]["responses"].pop("200"),
         lambda doc: doc["paths"]["/items"]["post"]["responses"]["200"]["content"].pop(
             "application/json"
@@ -148,14 +140,12 @@ def test_breaking_changes_are_detected(mutation: Any) -> None:
 def test_compatible_additions_pass_with_review_signal() -> None:
     baseline = _document()
     candidate = deepcopy(baseline)
-    schema = candidate["paths"]["/items"]["post"]["requestBody"]["content"][
-        "application/json"
-    ]["schema"]
+    schema = candidate["paths"]["/items"]["post"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]
     schema["properties"]["optional"] = {"type": "string"}
     schema["properties"]["mode"]["enum"].append("c")
-    candidate["paths"]["/health"] = {
-        "get": {"operationId": "health", "responses": {"200": {}}}
-    }
+    candidate["paths"]["/health"] = {"get": {"operationId": "health", "responses": {"200": {}}}}
     issues = _issues(baseline, candidate)
     assert not any(item.severity is CompatibilitySeverity.BREAKING for item in issues)
     assert any(item.severity is CompatibilitySeverity.REVIEW for item in issues)
@@ -208,8 +198,7 @@ def test_request_correlation_schema_narrowing_is_breaking(
     issues = _issues(baseline, candidate)
 
     assert any(
-        issue.severity is CompatibilitySeverity.BREAKING
-        and issue.message == message
+        issue.severity is CompatibilitySeverity.BREAKING and issue.message == message
         for issue in issues
     )
 
@@ -245,9 +234,7 @@ def test_required_response_correlation_header_becoming_optional_is_breaking() ->
 def test_response_header_names_are_case_insensitive() -> None:
     baseline = _correlation_document()
     candidate = deepcopy(baseline)
-    headers = candidate["paths"]["/api/v1/generate"]["post"]["responses"]["200"][
-        "headers"
-    ]
+    headers = candidate["paths"]["/api/v1/generate"]["post"]["responses"]["200"]["headers"]
     headers["x-request-id"] = headers.pop("X-Request-ID")
 
     issues = _issues(baseline, candidate)
@@ -259,9 +246,7 @@ def test_new_response_status_produces_one_review_finding() -> None:
     baseline = _correlation_document()
     candidate = deepcopy(baseline)
     candidate["paths"]["/api/v1/generate"]["post"]["responses"]["503"] = {
-        "content": {
-            "application/problem+json": {"schema": {"type": "object"}}
-        }
+        "content": {"application/problem+json": {"schema": {"type": "object"}}}
     }
 
     reviews = [
@@ -277,9 +262,9 @@ def test_new_response_status_produces_one_review_finding() -> None:
 def test_new_response_header_produces_one_review_finding() -> None:
     baseline = _correlation_document()
     candidate = deepcopy(baseline)
-    candidate["paths"]["/api/v1/generate"]["post"]["responses"]["200"]["headers"][
-        "X-Trace-ID"
-    ] = {"schema": {"type": "string"}}
+    candidate["paths"]["/api/v1/generate"]["post"]["responses"]["200"]["headers"]["X-Trace-ID"] = {
+        "schema": {"type": "string"}
+    }
 
     reviews = [
         issue
