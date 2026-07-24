@@ -1,0 +1,18 @@
+uv run python scripts/verify.py
+
+==> ruff
+$ uv run ruff check .
+All checks passed!
+[PASS] ruff (0.04s)
+
+==> format
+$ uv run ruff format --check .
+132 files already formatted
+[PASS] format (0.03s)
+
+==> mypy
+$ uv run mypy src
+src/gir_api/settings.py:44: error: Decorators on top of @property are not supported  [prop-decorator]
+Found 1 error in 1 file (checked 57 source files)
+[FAIL] mypy (4.16s, exit code 1)
+make: *** [Makefile:78: verify] Error 1

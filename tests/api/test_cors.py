@@ -41,9 +41,7 @@ def test_actual_response_exposes_request_id() -> None:
             headers={"Origin": ORIGIN, REQUEST_ID_HEADER: "cors-actual"},
         )
     assert response.headers["access-control-allow-origin"] == ORIGIN
-    assert REQUEST_ID_HEADER.lower() in response.headers[
-        "access-control-expose-headers"
-    ].lower()
+    assert REQUEST_ID_HEADER.lower() in response.headers["access-control-expose-headers"].lower()
     assert response.headers[REQUEST_ID_HEADER] == "cors-actual"
     assert response.headers.get("access-control-allow-credentials") != "true"
 
