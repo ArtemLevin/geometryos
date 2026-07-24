@@ -1,0 +1,69 @@
+name: Implement PR 9
+
+on:
+  push:
+    branches:
+      - integration/09-tutorboard-http-contract
+
+permissions:
+  contents: write
+
+concurrency:
+  group: implement-pr9
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/09-tutorboard-http-contract
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install locked dependencies
+        run: uv sync --frozen --dev
+
+      - name: Apply scoped implementation
+        run: uv run python scripts/implement_pr9.py
+
+      - name: Regenerate machine contracts
+        run: |
+          uv run python scripts/export_openapi.py
+          uv run python scripts/export_tutorboard_contracts.py
+
+      - name: Format
+        run: uv run ruff format .
+
+      - name: Verify source and contracts
+        run: make verify
+
+      - name: Verify consumer generation
+        run: |
+          npm ci --prefix contracts/tutorboard/typescript
+          npm run --prefix contracts/tutorboard/typescript generate
+          npm run --prefix contracts/tutorboard/typescript typecheck
+
+      - name: Validate Compose
+        run: docker compose config --quiet
+
+      - name: Commit implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: harden TutorBoard browser HTTP contract'
+          git push origin HEAD:integration/09-tutorboard-http-contract
