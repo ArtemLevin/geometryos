@@ -27,7 +27,7 @@ ExecutorDependency = Annotated[TimedApplicationExecutor, Depends(get_executor)]
         "Accept canonical GIR 0.2 or the supported legacy GIR 0.1 marker, return "
         "canonical GIR 0.2, and report semantic validity without rendering."
     ),
-    responses=problem_responses(422, 500, 504),
+    responses=problem_responses(422, 500, 503, 504),
 )
 async def validate_gir_v1(
     scene: GirScene,
