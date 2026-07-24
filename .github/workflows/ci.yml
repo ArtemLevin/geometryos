@@ -228,7 +228,7 @@ jobs:
         id: implementation
         shell: bash
         run: |
-          if [[ -f scripts/pr9_implement.py ]]; then
+          if [[ -f scripts/pr9_implement.py && ! -f pr9-diagnostic.log ]]; then
             echo "required=true" >> "$GITHUB_OUTPUT"
           else
             echo "required=false" >> "$GITHUB_OUTPUT"
@@ -259,46 +259,68 @@ jobs:
         if: steps.implementation.outputs.required == 'true'
         run: uv sync --frozen --dev
 
-      - name: Apply the PR 9 contract patch
+      - name: Apply, format, and regenerate with diagnostic capture
         if: steps.implementation.outputs.required == 'true'
+        id: apply
+        shell: bash
         run: |
-          uv run python scripts/pr9_implement.py
-          rm -f noop noop2 noop3 noop4
+          set +e
+          set -o pipefail
+          {
+            uv run python scripts/pr9_implement.py
+            rm -f noop noop2 noop3 noop4
+            uv run ruff format .
+            uv run python scripts/export_openapi.py
+            uv run python scripts/export_tutorboard_contracts.py
+          } 2>&1 | tee /tmp/pr9-implementation.log
+          status=${PIPESTATUS[0]}
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      - name: Format and regenerate contracts
-        if: steps.implementation.outputs.required == 'true'
+      - name: Publish exact implementation diagnostic
+        if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status != '0'
+        shell: bash
         run: |
-          uv run ruff format .
-          uv run python scripts/export_openapi.py
-          uv run python scripts/export_tutorboard_contracts.py
+          git reset --hard HEAD
+          tail -n 240 /tmp/pr9-implementation.log > pr9-diagnostic.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pr9-diagnostic.log
+          git commit -m "chore: capture PR 9 implementation diagnostic"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+
+      - name: Stop after diagnostic publication
+        if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status != '0'
+        run: exit 1
 
       - name: Run targeted PR 9 tests
-        if: steps.implementation.outputs.required == 'true'
+        if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status == '0'
         run: |
           uv run pytest tests/api/test_cors.py tests/api/test_pr9_settings.py tests/api/test_service_unavailable.py
           uv run pytest tests/contracts/test_pr9_openapi_contract.py tests/contracts/test_pr9_openapi_compatibility.py
 
       - name: Run canonical verification
-        if: steps.implementation.outputs.required == 'true'
+        if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status == '0'
         run: make verify
 
       - name: Verify package and consumer generation
-        if: steps.implementation.outputs.required == 'true'
+        if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status == '0'
         run: |
           make package-smoke
           make consumer-typescript
 
       - name: Verify deployment boundary
-        if: steps.implementation.outputs.required == 'true'
+        if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status == '0'
         run: |
           docker compose config --quiet
           make container-smoke
           make dependency-audit
 
       - name: Publish only the verified product changes
-        if: steps.implementation.outputs.required == 'true'
+        if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status == '0'
         shell: bash
         run: |
+          rm -f pr9-diagnostic.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A -- ':!.github/workflows/**'
