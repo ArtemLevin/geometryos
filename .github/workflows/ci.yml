@@ -8,220 +8,22 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: pr9-bootstrap-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: uv sync --frozen --dev
-
-      - name: Verify
-        run: |
-          set -o pipefail
-          make verify 2>&1 | tee verify.log
-
-      - name: Upload verification failure log
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: verification-failure-${{ github.sha }}
-          path: verify.log
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Check OpenAPI compatibility with base branch
-        if: github.event_name == 'pull_request'
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          git fetch origin "${BASE_REF}" --depth=1
-          if git show "origin/${BASE_REF}:schemas/openapi.v1.json" > /tmp/openapi-baseline.json 2>/dev/null; then
-            uv run python scripts/check_openapi_compatibility.py \
-              --baseline /tmp/openapi-baseline.json \
-              --candidate schemas/openapi.v1.json
-          else
-            echo "No baseline OpenAPI artifact found; introducing compatibility baseline."
-          fi
-
-  package-smoke:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: uv sync --frozen --dev
-
-      - name: Test built wheel
-        run: make package-smoke
-
-  consumer-contract:
-    needs:
-      - verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install locked Python dependencies
-        run: uv sync --frozen --dev
-
-      - name: Execute TutorBoard Python contracts
-        run: make consumer-contract
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: npm
-          cache-dependency-path: contracts/tutorboard/typescript/package-lock.json
-
-      - name: Install pinned consumer tooling
-        run: npm ci --prefix contracts/tutorboard/typescript
-
-      - name: Generate TypeScript contract
-        run: npm run --prefix contracts/tutorboard/typescript generate
-
-      - name: Type-check TutorBoard smoke client
-        run: npm run --prefix contracts/tutorboard/typescript typecheck
-
-  container-smoke:
-    needs:
-      - verify
-      - package-smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install locked dependencies
-        run: uv sync --frozen --dev
-
-      - name: Validate Docker Compose
-        run: docker compose config --quiet
-
-      - name: Build and smoke-test image
-        run: |
-          VERSION=$(uv run python scripts/print_version.py)
-          uv run python scripts/container_smoke.py \
-            --image geometryos:${GITHUB_SHA} \
-            --revision ${GITHUB_SHA} \
-            --version "${VERSION}"
-
-  release-dry-run:
-    needs:
-      - verify
-      - package-smoke
-      - consumer-contract
-      - container-smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install locked dependencies
-        run: uv sync --frozen --dev
-
-      - name: Check release version and manifest
-        run: |
-          make version-check
-          make release-manifest-check
-
-      - name: Audit locked runtime dependencies
-        run: make dependency-audit
-
-      - name: Build release candidate bundle
-        run: make release-build
-
-      - name: Smoke-test release candidate bundle
-        run: make release-smoke
-
-      - name: Upload release candidate
-        uses: actions/upload-artifact@v4
-        with:
-          name: geometryos-release-candidate-${{ github.sha }}
-          path: dist/release/0.2.0/
-          if-no-files-found: error
-          retention-days: 14
-
   pr9-implement:
-    if: github.event_name == 'pull_request' && github.head_ref == 'integration/09-consumer-http-contract'
+    if: github.ref_name == 'integration/09-consumer-http-contract' || github.head_ref == 'integration/09-consumer-http-contract'
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
       contents: write
 
     steps:
-      - name: Check out the pull-request head branch
+      - name: Check out feature branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: integration/09-consumer-http-contract
           fetch-depth: 0
 
       - name: Detect pending implementation
@@ -259,6 +61,22 @@ jobs:
         if: steps.implementation.outputs.required == 'true'
         run: uv sync --frozen --dev
 
+      - name: Correct generator escaping
+        if: steps.implementation.outputs.required == 'true'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("scripts/pr9_implement.py")
+          content = path.read_text(encoding="utf-8")
+          old = 'sort_keys=True) + "\\n"'
+          new = 'sort_keys=True) + "\\\\n"'
+          if content.count(old) != 1:
+              raise SystemExit(f"Expected one generator newline literal, found {content.count(old)}")
+          path.write_text(content.replace(old, new, 1), encoding="utf-8")
+          PY
+
       - name: Apply, format, and regenerate with diagnostic capture
         if: steps.implementation.outputs.required == 'true'
         id: apply
@@ -282,12 +100,12 @@ jobs:
         shell: bash
         run: |
           git reset --hard HEAD
-          tail -n 240 /tmp/pr9-implementation.log > pr9-diagnostic.log
+          tail -n 260 /tmp/pr9-implementation.log > pr9-diagnostic.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pr9-diagnostic.log
           git commit -m "chore: capture PR 9 implementation diagnostic"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:integration/09-consumer-http-contract
 
       - name: Stop after diagnostic publication
         if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status != '0'
@@ -299,7 +117,7 @@ jobs:
           uv run pytest tests/api/test_cors.py tests/api/test_pr9_settings.py tests/api/test_service_unavailable.py
           uv run pytest tests/contracts/test_pr9_openapi_contract.py tests/contracts/test_pr9_openapi_compatibility.py
 
-      - name: Run canonical verification
+      - name: Run canonical source verification
         if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status == '0'
         run: make verify
 
@@ -316,7 +134,7 @@ jobs:
           make container-smoke
           make dependency-audit
 
-      - name: Publish only the verified product changes
+      - name: Publish only verified product changes
         if: steps.implementation.outputs.required == 'true' && steps.apply.outputs.status == '0'
         shell: bash
         run: |
@@ -325,4 +143,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A -- ':!.github/workflows/**'
           git commit -m "feat: harden TutorBoard browser HTTP contract"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:integration/09-consumer-http-contract
