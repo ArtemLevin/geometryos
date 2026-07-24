@@ -61,7 +61,7 @@ jobs:
         if: steps.implementation.outputs.required == 'true'
         run: uv sync --frozen --dev
 
-      - name: Correct generator escaping
+      - name: Correct staged generator output
         if: steps.implementation.outputs.required == 'true'
         shell: bash
         run: |
@@ -70,11 +70,19 @@ jobs:
 
           path = Path("scripts/pr9_implement.py")
           content = path.read_text(encoding="utf-8")
-          old = 'sort_keys=True) + "\\n"'
-          new = 'sort_keys=True) + "\\\\n"'
-          if content.count(old) != 1:
-              raise SystemExit(f"Expected one generator newline literal, found {content.count(old)}")
-          path.write_text(content.replace(old, new, 1), encoding="utf-8")
+          replacements = [
+              ('sort_keys=True) + "\\n"', 'sort_keys=True) + "\\\\n"'),
+              ("                parsed.port\n", "                _ = parsed.port\n"),
+              (
+                  "from collections.abc import Awaitable, Callable\n",
+                  "from collections.abc import Callable\n",
+              ),
+          ]
+          for old, new in replacements:
+              if content.count(old) != 1:
+                  raise SystemExit(f"Expected one staged source match, found {content.count(old)}: {old!r}")
+              content = content.replace(old, new, 1)
+          path.write_text(content, encoding="utf-8")
           PY
 
       - name: Apply and regenerate PR 9
@@ -118,7 +126,7 @@ jobs:
         shell: bash
         run: |
           git reset --hard HEAD
-          tail -n 300 /tmp/pr9-gates.log > pr9-diagnostic.log
+          tail -n 320 /tmp/pr9-gates.log > pr9-diagnostic.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pr9-diagnostic.log
