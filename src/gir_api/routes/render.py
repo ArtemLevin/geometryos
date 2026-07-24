@@ -29,7 +29,7 @@ ExecutorDependency = Annotated[TimedApplicationExecutor, Depends(get_executor)]
     tags=["Rendering"],
     summary="Render validated GIR as SVG",
     description="Validate and normalize a GIR scene, then return deterministic SVG content.",
-    responses=problem_responses(422, 500, 504),
+    responses=problem_responses(422, 500, 503, 504),
 )
 async def render_svg_v1(
     scene: GirScene,
@@ -50,7 +50,7 @@ async def render_svg_v1(
     tags=["Rendering"],
     summary="Render validated GIR as TikZ",
     description="Validate and normalize a GIR scene, then return deterministic TikZ content.",
-    responses=problem_responses(422, 500, 504),
+    responses=problem_responses(422, 500, 503, 504),
 )
 async def render_tikz_v1(
     scene: GirScene,
