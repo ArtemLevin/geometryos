@@ -1,15 +1,14 @@
 name: PR 10 Finalizer
 
 on:
-  push:
-    branches:
-      - integration/10-layout-contract-v01
+  pull_request:
 
 permissions:
   contents: write
 
 jobs:
   finalize:
+    if: github.event.pull_request.head.ref == 'integration/10-layout-contract-v01'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
