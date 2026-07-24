@@ -110,3 +110,5 @@ jobs:
           git add -A -- ':!.github/workflows/pr9-implementation.yml'
           git commit -m "feat: harden TutorBoard browser HTTP contract"
           git push origin HEAD:integration/09-consumer-http-contract
+
+# Triggered after draft PR creation so standard PR checks receive base/head context.
