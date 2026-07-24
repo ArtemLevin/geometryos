@@ -38,7 +38,7 @@ SettingsDependency = Annotated[ApiSettings, Depends(get_runtime_settings)]
         "optional SVG or TikZ output. Ambiguity and unsupported constructions are "
         "returned as typed HTTP 200 domain results."
     ),
-    responses=problem_responses(413, 422, 500, 504),
+    responses=problem_responses(413, 422, 500, 503, 504),
 )
 async def generate_v1(
     request: GenerateV1Request,
@@ -82,7 +82,6 @@ def _to_command(
     )
 
 
-# Source-level aliases preserve pre-v1 imports for current Python consumers and tests.
 GenerateRequest = LegacyGenerateRequest
 GenerateResponse = LegacyGenerateResponse
 generate = generate_legacy
