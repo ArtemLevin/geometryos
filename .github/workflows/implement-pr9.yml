@@ -1,4 +1,4 @@
-name: Implement PR 9
+name: Finalize PR 9
 
 on:
   push:
@@ -9,14 +9,14 @@ permissions:
   contents: write
 
 concurrency:
-  group: implement-pr9
+  group: finalize-pr9
   cancel-in-progress: false
 
 jobs:
-  implement:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,8 +37,8 @@ jobs:
       - name: Install locked dependencies
         run: uv sync --frozen --dev
 
-      - name: Apply scoped implementation
-        run: uv run python scripts/implement_pr9.py
+      - name: Remove one-shot implementation artifacts
+        run: rm -f scripts/implement_pr9.py .pr9-trigger
 
       - name: Regenerate machine contracts
         run: |
@@ -60,10 +60,14 @@ jobs:
       - name: Validate Compose
         run: docker compose config --quiet
 
-      - name: Commit implementation
+      - name: Commit verified artifacts
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'feat: harden TutorBoard browser HTTP contract'
+          if git diff --cached --quiet; then
+            echo 'No generated changes to commit.'
+            exit 0
+          fi
+          git commit -m 'chore: regenerate PR 9 contracts'
           git push origin HEAD:integration/09-tutorboard-http-contract
